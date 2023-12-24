@@ -1,0 +1,2 @@
+# MNIST
+Neurosymbolic System implementation
