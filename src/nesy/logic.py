@@ -15,6 +15,20 @@ class ForwardChaining(LogicEngine):
     def reason(self, program: tuple[Clause], queries: list[Term]):
         # TODO: Implement this
 
+        # Function to match and instantiate a clause with a query
+        def instantiate_clause(clause, query):
+            substitution = {}
+            for (clause_arg, query_arg) in zip(clause.head.arguments, query.arguments):
+                substitution[str(clause_arg)] = str(query_arg)
+            instantiated_body = []
+            for term in clause.body:
+                instantiated_term = Term(term.functor, [substitution.get(str(arg), str(arg)) for arg in term.arguments])
+                instantiated_body.append(instantiated_term)
+            return instantiated_body
+
+        print("\n\nProgram: \n", program)
+        print("\n\nQueries: \n", queries)
+
         # Initialize known facts
         known_facts = set()
 
@@ -27,6 +41,8 @@ class ForwardChaining(LogicEngine):
                 # Handle empty-body Clauses as facts
                 known_facts.add(item.head)
 
+        print("\n\nKnown facts: \n", known_facts)
+
         # Apply forward chaining
         inferred = True
         while inferred:
@@ -38,21 +54,21 @@ class ForwardChaining(LogicEngine):
                             known_facts.add(item.head)
                             inferred = True
 
+        print("\n\nKnown facts after forward chaining: \n", known_facts)
+
         # Build the And-Or tree for each query
         and_or_trees = []
         for query in queries:
-            # Find clauses relevant to the query
-            relevant_clauses = [clause for clause in program if isinstance(clause, Clause) and query.functor in clause.head]
+            relevant_clauses = [clause for clause in program if isinstance(clause, Clause) and clause.head.functor == query.functor and len(clause.head.arguments) == len(query.arguments)]
+            and_nodes = []
+            for clause in relevant_clauses:
+                instantiated_body = instantiate_clause(clause, query)
+                and_nodes.append(And([Leaf(term) for term in instantiated_body]))
 
-            # Create 'And' nodes for each relevant clause
-            and_nodes = [And([Leaf(term) for term in clause.body]) for clause in relevant_clauses]
-
-            # Create an 'Or' node with all 'And' children
             or_node = Or(and_nodes)
-
             and_or_trees.append(or_node)
 
-        print(and_or_trees)
+        print("\n\n And or trees: \n", and_or_trees)
 
         return and_or_trees
 

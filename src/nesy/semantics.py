@@ -24,7 +24,7 @@ class SumProductSemiring(Semantics):
     def conjunction(self, a, b):
         return a + b
 
-    # Multiplacation of a and b: OR(a,b) = a * b
+    # Multiplication of a and b: OR(a,b) = a * b
     def disjunction(self, a, b):
         return a * b
 

@@ -3,13 +3,14 @@ addition(X,Y,Z) :- digit(X,N1),
                 digit(Y,N2),
                 add(N1,N2,Z),
 
-add(0,0,0), 
-add(0,1,1), 
-add(1,0,1), 
-add(1,1,2), 
-nn(digit,tensor(images,0),0)::digit(tensor(images,0),0), 
-nn(digit,tensor(images,0),1)::digit(tensor(images,0),1), 
-nn(digit,tensor(images,1),0)::digit(tensor(images,1),0), 
+add(0,0,0),
+add(0,1,1),
+add(1,0,1),
+add(1,1,2),
+
+nn(digit,tensor(images,0),0)::digit(tensor(images,0),0),
+nn(digit,tensor(images,0),1)::digit(tensor(images,0),1),
+nn(digit,tensor(images,1),0)::digit(tensor(images,1),0),
 nn(digit,tensor(images,1),1)::digit(tensor(images,1),1)
 
 # known_facts
@@ -18,12 +19,17 @@ nn(digit,tensor(images,1),1)::digit(tensor(images,1),1)
 # and_or_tree
 [Or(), Or(), Or()]
 
-#queries
-[addition(tensor(images,0),tensor(images,1),0), 
-addition(tensor(images,0),tensor(images,1),1), 
+# queries
+[addition(tensor(images,0),tensor(images,1),0),
+addition(tensor(images,0),tensor(images,1),1),
 addition(tensor(images,0),tensor(images,1),2)]
 
-#trees
-[Or(And(Leaf(digit(X,N1)), Leaf(digit(Y,N2)), Leaf(add(N1,N2,Z)))), 
-Or(And(Leaf(digit(X,N1)), Leaf(digit(Y,N2)), Leaf(add(N1,N2,Z)))), 
+# trees
+[Or(And(Leaf(digit(X,N1)), Leaf(digit(Y,N2)), Leaf(add(N1,N2,Z)))),
+Or(And(Leaf(digit(X,N1)), Leaf(digit(Y,N2)), Leaf(add(N1,N2,Z)))),
 Or(And(Leaf(digit(X,N1)), Leaf(digit(Y,N2)), Leaf(add(N1,N2,Z))))]
+
+# Upgedate And or trees:
+ [Or(And(Leaf(digit(tensor(images,0),N1)), Leaf(digit(tensor(images,1),N2)), Leaf(add(N1,N2,0)))),
+ Or(And(Leaf(digit(tensor(images,0),N1)), Leaf(digit(tensor(images,1),N2)), Leaf(add(N1,N2,1)))),
+ Or(And(Leaf(digit(tensor(images,0),N1)), Leaf(digit(tensor(images,1),N2)), Leaf(add(N1,N2,2))))]
