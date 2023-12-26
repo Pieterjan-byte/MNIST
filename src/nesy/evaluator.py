@@ -34,7 +34,9 @@ class Evaluator():
 
 
 
-        """def evaluate(self, tensor_sources, and_or_tree, queries):
+        """
+        
+        def evaluate(self, tensor_sources, and_or_tree, queries):
         # TODO: Implement this
 
 
@@ -50,4 +52,7 @@ class Evaluator():
             res = [torch.stack([p_sum_0[0] for q in query]) for query in queries]
         else:
             res = [p_sum_0[0] for query in queries]
-        return torch.stack(res)"""
+        return torch.stack(res)
+        
+        
+        """

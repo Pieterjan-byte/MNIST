@@ -49,7 +49,7 @@ class NeSyModel(pl.LightningModule):
         self.bce = torch.nn.BCELoss()
         self.evaluator = Evaluator(neural_predicates=neural_predicates, label_semantics=label_semantics)
 
-    """def forward(self, tensor_sources: Dict[str, torch.Tensor],  queries: List[Term] | List[List[Term]]):
+    def forward(self, tensor_sources: Dict[str, torch.Tensor],  queries: List[Term] | List[List[Term]]):
         # TODO: Note that you need to handle both the cases of single queries (List[Term]), like during training
         #  or of grouped queries (List[List[Term]]), like during testing.
         #  Check how the dataset provides such queries.
@@ -59,20 +59,22 @@ class NeSyModel(pl.LightningModule):
         if not isinstance(queries[0], list):
             print("\n\n Single  query case \n\n")
             # Single queries case, typically during training
-            and_or_trees = self.logic_engine.reason(self.program, queries)
-            results = self.evaluator.evaluate(tensor_sources, and_or_trees, queries)
+            and_or_tree = self.logic_engine.reason(self.program, queries)
+            results = self.evaluator.evaluate(tensor_sources, and_or_tree, queries)
         else:
             print("\n\n Grouped query case \n\n")
             # Grouped queries case, typically during testing
             results = []
             for query_group in queries:
-                and_or_trees = self.logic_engine.reason(self.program, query_group)
-                group_results = self.evaluator.evaluate(tensor_sources, and_or_trees, query_group)
+                and_or_tree = self.logic_engine.reason(self.program, query_group)
+                group_results = self.evaluator.evaluate(tensor_sources, and_or_tree, query_group)
                 results.append(group_results)
             results = torch.cat(results, dim=0)
 
-        return results"""
+        return results
 
+    """
+    
     def forward(self, tensor_sources: Dict[str, torch.Tensor],  queries: List[Term] | List[List[Term]]):
         # TODO: Note that you need to handle both the cases of single queries (List[Term]), like during training
         #  or of grouped queries (List[List[Term]]), like during testing.
@@ -80,6 +82,8 @@ class NeSyModel(pl.LightningModule):
         and_or_tree = self.logic_engine.reason(self.program, queries)
         results = self.evaluator.evaluate(tensor_sources, and_or_tree, queries)
         return results
+        
+    """
 
     def training_step(self, I, batch_idx):
         tensor_sources, queries, y_true = I
