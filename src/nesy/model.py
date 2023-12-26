@@ -49,29 +49,15 @@ class NeSyModel(pl.LightningModule):
         self.bce = torch.nn.BCELoss()
         self.evaluator = Evaluator(neural_predicates=neural_predicates, label_semantics=label_semantics)
 
-    def forward(self, tensor_sources: Dict[str, torch.Tensor],  queries: List[Term] | List[List[Term]]):
+    """def forward(self, tensor_sources: Dict[str, torch.Tensor],  queries: List[Term] | List[List[Term]]):
         # TODO: Note that you need to handle both the cases of single queries (List[Term]), like during training
         #  or of grouped queries (List[List[Term]]), like during testing.
         #  Check how the dataset provides such queries.
 
-        """ # Our dummy And-Or-Tree (addition(img0, img1,0) is represented by digit(img0,0) AND digit(img1,0)
-        # The evaluation is:
-        # p(addition(img0, img1,0)) = p(digit(img0,0) AND digit(img1,0)) =
-        p_digit_0_0 = self.neural_predicates["digit"](tensor_sources["images"][:,0])[:,0]
-        p_digit_1_0 = self.neural_predicates["digit"](tensor_sources["images"][:,1])[:,0]
-        p_sum_0 =  p_digit_0_0 * p_digit_1_0
-
-        # Here we trivially return the same value (p_sum_0[0]) for each of the queries to make the code runnable
-        if isinstance(queries[0], list):
-            res = [torch.stack([p_sum_0[0] for q in query]) for query in queries]
-        else:
-            res = [p_sum_0[0] for query in queries]
-        return torch.stack(res)"""
-
 
         # Check if the queries are single or grouped
-        if all(isinstance(q, Term) for q in queries):
-            print("\n\n Single query case \n\n")
+        if not isinstance(queries[0], list):
+            print("\n\n Single  query case \n\n")
             # Single queries case, typically during training
             and_or_trees = self.logic_engine.reason(self.program, queries)
             results = self.evaluator.evaluate(tensor_sources, and_or_trees, queries)
@@ -85,4 +71,31 @@ class NeSyModel(pl.LightningModule):
                 results.append(group_results)
             results = torch.cat(results, dim=0)
 
+        return results"""
+
+    def forward(self, tensor_sources: Dict[str, torch.Tensor],  queries: List[Term] | List[List[Term]]):
+        # TODO: Note that you need to handle both the cases of single queries (List[Term]), like during training
+        #  or of grouped queries (List[List[Term]]), like during testing.
+        #  Check how the dataset provides such queries.
+        and_or_tree = self.logic_engine.reason(self.program, queries)
+        results = self.evaluator.evaluate(tensor_sources, and_or_tree, queries)
         return results
+
+    def training_step(self, I, batch_idx):
+        tensor_sources, queries, y_true = I
+        y_preds = self.forward(tensor_sources, queries)
+        loss = self.bce(y_preds.squeeze(), y_true.float().squeeze())
+        self.log("train_loss", loss, on_epoch=True, prog_bar=True)
+        return loss
+
+
+    def validation_step(self, I, batch_idx):
+        tensor_sources, queries, y_true = I
+        y_preds = self.forward(tensor_sources, queries)
+        accuracy = accuracy_score(y_true, y_preds.argmax(dim=-1))
+        self.log("test_acc", accuracy, on_step=True, on_epoch=True, prog_bar=True)
+        return accuracy
+
+    def configure_optimizers(self):
+        optimizer = torch.optim.AdamW(self.parameters(), lr=self.learning_rate)
+        return optimizer

@@ -32,14 +32,16 @@ class Evaluator():
         # The neural predicate function is called with the corresponding tensors
         return self.neural_predicates[neural_predicate](*[tensor_sources[arg] for arg in arguments])
 
-        # Step 1: Traverse the And-Or tree
-        # (Implement logic to traverse the tree and calculate probabilities at each node)
+
+
+        """def evaluate(self, tensor_sources, and_or_tree, queries):
+        # TODO: Implement this
 
 
         # Our dummy And-Or-Tree (addition(img0, img1,0) is represented by digit(img0,0) AND digit(img1,0)
         # The evaluation is:
         # p(addition(img0, img1,0)) = p(digit(img0,0) AND digit(img1,0)) =
-        """p_digit_0_0 = self.neural_predicates["digit"](tensor_sources["images"][:,0])[:,0]
+        p_digit_0_0 = self.neural_predicates["digit"](tensor_sources["images"][:,0])[:,0]
         p_digit_1_0 = self.neural_predicates["digit"](tensor_sources["images"][:,1])[:,0]
         p_sum_0 =  p_digit_0_0 * p_digit_1_0
 
