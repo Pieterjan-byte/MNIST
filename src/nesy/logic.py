@@ -42,7 +42,7 @@ class ForwardChaining(LogicEngine):
         and_or_trees = []
         for query in queries:
             # Find clauses relevant to the query
-            relevant_clauses = [clause for clause in program if isinstance(clause, Clause) and clause.head == query]
+            relevant_clauses = [clause for clause in program if isinstance(clause, Clause) and query.functor in clause.head]
 
             # Create 'And' nodes for each relevant clause
             and_nodes = [And([Leaf(term) for term in clause.body]) for clause in relevant_clauses]
@@ -51,6 +51,8 @@ class ForwardChaining(LogicEngine):
             or_node = Or(and_nodes)
 
             and_or_trees.append(or_node)
+
+        print(and_or_trees)
 
         return and_or_trees
 
