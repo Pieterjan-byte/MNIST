@@ -86,22 +86,3 @@ class NeSyModel(pl.LightningModule):
             results = torch.cat(results, dim=0)
 
         return results
-
-    def training_step(self, I, batch_idx):
-        tensor_sources, queries, y_true = I
-        y_preds = self.forward(tensor_sources, queries)
-        loss = self.bce(y_preds.squeeze(), y_true.float().squeeze())
-        self.log("train_loss", loss, on_epoch=True, prog_bar=True)
-        return loss
-
-
-    def validation_step(self, I, batch_idx):
-        tensor_sources, queries, y_true = I
-        y_preds = self.forward(tensor_sources, queries)
-        accuracy = accuracy_score(y_true, y_preds.argmax(dim=-1))
-        self.log("test_acc", accuracy, on_step=True, on_epoch=True, prog_bar=True)
-        return accuracy
-
-    def configure_optimizers(self):
-        optimizer = torch.optim.AdamW(self.parameters(), lr=self.learning_rate)
-        return optimizer
