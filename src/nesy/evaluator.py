@@ -23,6 +23,8 @@ class Evaluator():
             return self.label_semantics.conjunction(*children_values)
         elif isinstance(node, Or):
             children_values = [self.evaluate_tree(child, tensor_sources) for child in node.children]
+            if len(children_values) == 1:
+                return children_values[0]  # Return the single child's value directly
             return self.label_semantics.disjunction(*children_values)
 
     def evaluate_leaf(self, leaf, tensor_sources):
@@ -34,9 +36,9 @@ class Evaluator():
         source = arguments[0]
         nb_index = arguments[1]
 
-        print("\n\n Neural predicate :\n  ", neural_predicate, "\n  arguments:\n  ",  arguments)
-        print("\n\n source:\n  ", source, "\n  nb_index:\n  ",  nb_index)
-        print("\n\nAvailable Keys in tensor_sources:\n\n", tensor_sources.keys())
+        #print("\n\n Neural predicate :\n  ", neural_predicate, "\n  arguments:\n  ",  arguments)
+        #print("\n\n source:\n  ", source, "\n  nb_index:\n  ",  nb_index)
+        #print("\n\nAvailable Keys in tensor_sources:\n\n", tensor_sources.keys())
 
         # Parse the argument assuming the format 'tensor(images,0)'
         tensor_name = str(source.arguments[0])
@@ -45,7 +47,7 @@ class Evaluator():
         # Assuming the second argument of the leaf is an index for the neural predicate output
         nb_index = int(arguments[1].functor)
 
-        print("\n  tensor name:\n  ",  tensor_name, "\n  image_index:\n  ",  image_index, "\n \n ")
+        #print("\n  tensor name:\n  ",  tensor_name, "\n  image_index:\n  ",  image_index, "\n \n ")
 
         result = self.neural_predicates[neural_predicate](tensor_sources[tensor_name][:, image_index])[:, nb_index]
 

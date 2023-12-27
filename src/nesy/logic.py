@@ -55,7 +55,7 @@ def add_substitutions(clause, known_facts, queries, and_or_trees):
     new_facts_added = False
     added_nodes = set()  # Set to track added node representations
 
-    print("\n\nClause: \n\n", clause)
+    #print("\n\nClause: \n\n", clause)
 
     for term in body:
         new_substitutions = []
@@ -81,7 +81,7 @@ def add_substitutions(clause, known_facts, queries, and_or_trees):
     # Filter out incomplete substitutions
     complete_substitutions = [sub for sub in complete_substitutions if is_complete_substitution(body, sub)]
 
-    print("\n\nComplete substitutions :\n\n", complete_substitutions)
+    #print("\n\nComplete substitutions :\n\n", complete_substitutions)
 
     for substitution in complete_substitutions:
         substituted_head = substitute(clause.head, substitution)

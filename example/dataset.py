@@ -55,6 +55,7 @@ class AdditionTask(Dataset):
         target = int(targets.sum())
 
         if self.train:
+            print("\n\n Train phase \n\n")
             # In MNIST Addition, training queries for a single pair of images check for a given sum (i.e. the target)
             # Therefore, we have a List[Term], each element of the list correspond to a single pair of images
 
@@ -67,6 +68,7 @@ class AdditionTask(Dataset):
             # In this way, we can compute the most probable sum.
             # Therefore, we have a List[List[Term]], each element of the outer list correspond to a single pair of
             # images. Each element of the inner list correspond to a possible sum.
+            print("\n\n Test phase \n\n")
 
             queries = [parse_program("addition(tensor(images, 0), tensor(images,1), {}).".format(z))[0].term
                        for z in range(self.n_classes * 2 - 1)]
@@ -79,7 +81,7 @@ class AdditionTask(Dataset):
             shuffle = self.train
 
         return DataLoader(self, batch_size=batch_size, shuffle=shuffle, collate_fn=custom_collate,
-                          num_workers=num_workers)
+                        num_workers=num_workers)
 
     def __len__(self):
         return self.nr_examples

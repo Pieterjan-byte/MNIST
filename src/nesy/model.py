@@ -72,7 +72,8 @@ class NeSyModel(pl.LightningModule):
                 results.append(group_results)
             results = torch.cat(results, dim=0)
 
-        return results
+        print("\n\nGroup results: \n ", group_results, "\n")
+        return group_results
 
     """
     
