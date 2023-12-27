@@ -22,11 +22,11 @@ class SumProductSemiring(Semantics):
 
     # Summation of a and b: AND(a,b) = a + b
     def conjunction(self, a, b):
-        return a + b
+        return a * b
 
     # Multiplication of a and b: OR(a,b) = a * b
     def disjunction(self, a, b):
-        return a * b
+        return a + b
 
     # Flip the truth value or negate the value? NEG(a) = -a
     def negation(self, a):
