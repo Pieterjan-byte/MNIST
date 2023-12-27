@@ -69,14 +69,26 @@ class NeSyModel(pl.LightningModule):
                 print("\n\n Query group:\n\n", query_group)
                 and_or_trees = self.logic_engine.reason(self.program, query_group)
                 group_results = self.evaluator.evaluate(tensor_sources, and_or_trees, query_group)
+                # Ensure group_results is 2D (1 row per group)
+                group_results = group_results.unsqueeze(0)  # Adds a new dimension at position 0
                 results.append(group_results)
-            results = torch.cat(results, dim=0)
+            results = torch.cat(results, dim=0)  # Stacks along the new dimension
 
-        print("\n\nGroup results: \n ", group_results, "\n")
-        return group_results
+        print("\n\nresults: \n ", results, "\n")
+        return results
+
+    """Results should be of form:
+        tensor([[1., 1., 1.],
+        [1., 1., 1.]])
+
+        and are right now of shape:
+        Group results:
+        tensor([[0.2327, 0.2629],
+        [0.4998, 0.4997],
+        [0.2675, 0.2374]]) """
 
     """
-    
+
     def forward(self, tensor_sources: Dict[str, torch.Tensor],  queries: List[Term] | List[List[Term]]):
         # TODO: Note that you need to handle both the cases of single queries (List[Term]), like during training
         #  or of grouped queries (List[List[Term]]), like during testing.

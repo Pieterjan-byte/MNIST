@@ -11,20 +11,25 @@ class Evaluator():
         # TODO: Implement this
         results = []
         for and_or_tree in and_or_trees:
-            result = self.evaluate_tree(and_or_tree, tensor_sources)
+            result = self.evaluate_tree(and_or_tree, tensor_sources)[0]
+            #print("\n\nresult: \n\n", result)
             results.append(result)
         return torch.stack(results)
 
     def evaluate_tree(self, node, tensor_sources):
         if isinstance(node, Leaf):
+            #print("\n\nresult Leaf: \n\n", self.evaluate_leaf(node, tensor_sources))
             return self.evaluate_leaf(node, tensor_sources)
         elif isinstance(node, And):
             children_values = [self.evaluate_tree(child, tensor_sources) for child in node.children]
+            #print("\n\nresult AND: \n\n", self.label_semantics.conjunction(*children_values))
             return self.label_semantics.conjunction(*children_values)
         elif isinstance(node, Or):
             children_values = [self.evaluate_tree(child, tensor_sources) for child in node.children]
             if len(children_values) == 1:
+                #print("\n\nresult FINAL OR: \n\n", children_values[0] )
                 return children_values[0]  # Return the single child's value directly
+            #print("\n\nresult OR: \n\n", self.label_semantics.disjunction(*children_values))
             return self.label_semantics.disjunction(*children_values)
 
     def evaluate_leaf(self, leaf, tensor_sources):
@@ -49,16 +54,12 @@ class Evaluator():
 
         #print("\n  tensor name:\n  ",  tensor_name, "\n  image_index:\n  ",  image_index, "\n \n ")
 
-        result = self.neural_predicates[neural_predicate](tensor_sources[tensor_name][:, image_index])[:, nb_index]
+        prob = self.neural_predicates[neural_predicate](tensor_sources[tensor_name][:, image_index])[:, nb_index]
+
+        #print("\n\nprob: \n\n", prob)
 
         # The neural predicate function is called with the corresponding tensors
-        return result
-
-        """
-        Neural predicate:
-        digit
-        arguments:
-        (tensor(images,0), 0) """
+        return prob
 
 
         """
