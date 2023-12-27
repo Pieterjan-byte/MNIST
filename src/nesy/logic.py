@@ -13,16 +13,6 @@ class LogicEngine(ABC):
 class ForwardChaining(LogicEngine):
 
     def reason(self, program: tuple[Clause], queries: list[Term]):
-        # Function to match and instantiate a clause with a query
-        def instantiate_clause(clause, query):
-            substitution = {}
-            for (clause_arg, query_arg) in zip(clause.head.arguments, query.arguments):
-                substitution[str(clause_arg)] = str(query_arg)
-            instantiated_body = []
-            for term in clause.body:
-                instantiated_term = Term(term.functor, [substitution.get(str(arg), str(arg)) for arg in term.arguments])
-                instantiated_body.append(instantiated_term)
-            return instantiated_body
 
         print("\nProgram: \n", program)
         print("\n\nQueries: \n", queries)
@@ -63,6 +53,7 @@ def add_substitutions(clause, known_facts, queries, and_or_trees):
     complete_substitutions = [{}]
     body = clause.body
     new_facts_added = False
+    added_nodes = set()  # Set to track added node representations
 
     print("\n\nClause: \n\n", clause)
 
@@ -90,20 +81,24 @@ def add_substitutions(clause, known_facts, queries, and_or_trees):
     # Filter out incomplete substitutions
     complete_substitutions = [sub for sub in complete_substitutions if is_complete_substitution(body, sub)]
 
+    print("\n\nComplete substitutions :\n\n", complete_substitutions)
+
     for substitution in complete_substitutions:
         substituted_head = substitute(clause.head, substitution)
         if substituted_head not in known_facts:
             known_facts.add(substituted_head)
             new_facts_added = True
-            # Check if the substituted head matches any query
-            for i, query in enumerate(queries):
-                if substituted_head == query:
-                    # Construct And-Or tree for this query
-                    and_node = construct_and_or_tree_node(clause, substitution)
-                    if and_or_trees[i] is None:
-                        and_or_trees[i] = Or([and_node])
-                    else:
-                        and_or_trees[i].children.append(and_node)
+        # Check if the substituted head matches any query
+        for i, query in enumerate(queries):
+            if substituted_head == query:
+                # Construct And-Or tree for this query
+                and_node = construct_and_or_tree_node(clause, substitution)
+                node_repr = repr(and_node)  # Get the string representation of the node
+                if and_or_trees[i] is None:
+                    and_or_trees[i] = Or([and_node])
+                    added_nodes.add(node_repr)
+                elif not any(and_node == existing_node for existing_node in and_or_trees[i].children):
+                            and_or_trees[i].children.append(and_node)
 
     return new_facts_added, and_or_trees
 
@@ -133,6 +128,9 @@ class Leaf:
     def __repr__(self):
         return f"Leaf({self.term})"
 
+    def __eq__(self, other):
+        return isinstance(other, Leaf) and self.term == other.term
+
 class And:
     def __init__(self, children):
         self.children = children
@@ -141,6 +139,13 @@ class And:
         child_reprs = ', '.join([str(child) for child in self.children])
         return f"And({child_reprs})"
 
+    def __eq__(self, other):
+        if not isinstance(other, And) or len(self.children) != len(other.children):
+            return False
+        return all(c1 == c2 for c1, c2 in zip(sorted(self.children, key=repr), sorted(other.children, key=repr)))
+
+
+
 class Or:
     def __init__(self, children):
         self.children = children
@@ -148,6 +153,8 @@ class Or:
     def __repr__(self):
         child_reprs = ', '.join([str(child) for child in self.children])
         return f"Or({child_reprs})"
+
+
 
 # Dummy example:
 
