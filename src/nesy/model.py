@@ -54,6 +54,8 @@ class NeSyModel(pl.LightningModule):
         #  or of grouped queries (List[List[Term]]), like during testing.
         #  Check how the dataset provides such queries.
 
+        print("\n\nQueries in forward :\n\n ", queries)
+
 
         # Check if the queries are single or grouped
         if isinstance(queries[0], Term):
@@ -61,21 +63,24 @@ class NeSyModel(pl.LightningModule):
             # Single queries case, typically during training
             and_or_trees = self.logic_engine.reason(self.program, queries)
             results = self.evaluator.evaluate(tensor_sources, and_or_trees, queries)
+            print("\n\nResults:\n ", results)
         else:
             print("\n\n Grouped query case \n\n")
             # Grouped queries case, typically during testing
             results = []
             for query_group in queries:
-                print("\n\n Query group:\n\n", query_group)
                 and_or_trees = self.logic_engine.reason(self.program, query_group)
                 group_results = self.evaluator.evaluate(tensor_sources, and_or_trees, query_group)
-                results.append(group_results)
+                # Aggregate group results
+                aggregated_result = group_results.max(dim=-1)[1]  # Taking the index of the max value
+                results.append(aggregated_result)
             results = torch.cat(results, dim=0)
 
+        print("\n\nResults: \n ", results, "\n")
         return results
 
     """
-    
+
     def forward(self, tensor_sources: Dict[str, torch.Tensor],  queries: List[Term] | List[List[Term]]):
         # TODO: Note that you need to handle both the cases of single queries (List[Term]), like during training
         #  or of grouped queries (List[List[Term]]), like during testing.
@@ -83,7 +88,7 @@ class NeSyModel(pl.LightningModule):
         and_or_tree = self.logic_engine.reason(self.program, queries)
         results = self.evaluator.evaluate(tensor_sources, and_or_tree, queries)
         return results
-        
+
     """
 
     def training_step(self, I, batch_idx):
