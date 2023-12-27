@@ -26,16 +26,41 @@ class Evaluator():
             return self.label_semantics.disjunction(*children_values)
 
     def evaluate_leaf(self, leaf, tensor_sources):
+
         # Assuming leaf is a neural predicate
         neural_predicate = leaf.term.functor
         arguments = leaf.term.arguments
-        # The neural predicate function is called with the corresponding tensors
-        return self.neural_predicates[neural_predicate](*[tensor_sources[arg] for arg in arguments])
 
+        source = arguments[0]
+        nb_index = arguments[1]
+
+        print("\n\n Neural predicate :\n  ", neural_predicate, "\n  arguments:\n  ",  arguments)
+        print("\n\n source:\n  ", source, "\n  nb_index:\n  ",  nb_index)
+        print("\n\nAvailable Keys in tensor_sources:\n\n", tensor_sources.keys())
+
+        # Parse the argument assuming the format 'tensor(images,0)'
+        tensor_name = str(source.arguments[0])
+        image_index = int(source.arguments[1].functor)
+
+        # Assuming the second argument of the leaf is an index for the neural predicate output
+        nb_index = int(arguments[1].functor)
+
+        print("\n  tensor name:\n  ",  tensor_name, "\n  image_index:\n  ",  image_index, "\n \n ")
+
+        result = self.neural_predicates[neural_predicate](tensor_sources[tensor_name][:, image_index])[:, nb_index]
+
+        # The neural predicate function is called with the corresponding tensors
+        return result
+
+        """
+        Neural predicate:
+        digit
+        arguments:
+        (tensor(images,0), 0) """
 
 
         """
-        
+
         def evaluate(self, tensor_sources, and_or_tree, queries):
         # TODO: Implement this
 
@@ -53,6 +78,6 @@ class Evaluator():
         else:
             res = [p_sum_0[0] for query in queries]
         return torch.stack(res)
-        
-        
+
+
         """

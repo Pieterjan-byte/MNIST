@@ -36,9 +36,9 @@ class NeSyModel(pl.LightningModule):
 
 
     def __init__(self, program : List[Clause],
-                 neural_predicates: torch.nn.ModuleDict,
-                 logic_engine: LogicEngine,
-                 label_semantics: Semantics,
+                neural_predicates: torch.nn.ModuleDict,
+                logic_engine: LogicEngine,
+                label_semantics: Semantics,
                  learning_rate = 0.001, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.neural_predicates = neural_predicates
@@ -56,18 +56,19 @@ class NeSyModel(pl.LightningModule):
 
 
         # Check if the queries are single or grouped
-        if not isinstance(queries[0], list):
+        if isinstance(queries[0], Term):
             print("\n\n Single  query case \n\n")
             # Single queries case, typically during training
-            and_or_tree = self.logic_engine.reason(self.program, queries)
-            results = self.evaluator.evaluate(tensor_sources, and_or_tree, queries)
+            and_or_trees = self.logic_engine.reason(self.program, queries)
+            results = self.evaluator.evaluate(tensor_sources, and_or_trees, queries)
         else:
             print("\n\n Grouped query case \n\n")
             # Grouped queries case, typically during testing
             results = []
             for query_group in queries:
-                and_or_tree = self.logic_engine.reason(self.program, query_group)
-                group_results = self.evaluator.evaluate(tensor_sources, and_or_tree, query_group)
+                print("\n\n Query group:\n\n", query_group)
+                and_or_trees = self.logic_engine.reason(self.program, query_group)
+                group_results = self.evaluator.evaluate(tensor_sources, and_or_trees, query_group)
                 results.append(group_results)
             results = torch.cat(results, dim=0)
 

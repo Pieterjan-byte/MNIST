@@ -117,7 +117,12 @@ def substitute(term, substitution):
         return term
 
 def construct_and_or_tree_node(clause, substitution):
-    children = [Leaf(substitute(term, substitution)) for term in clause.body]
+    # Filter out 'add' predicate leaves
+    children = [
+        Leaf(substitute(term, substitution))
+        for term in clause.body
+        if term.functor != 'add'
+    ]
     return And(children)
 
 
