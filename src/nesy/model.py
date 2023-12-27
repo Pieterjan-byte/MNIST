@@ -57,24 +57,8 @@ class NeSyModel(pl.LightningModule):
         print("\n\nQueries in forward :\n\n ", queries)
 
 
-        # Check if the queries are single or grouped
-        if isinstance(queries[0], Term):
-            print("\n\n Single  query case \n\n")
-            # Single queries case, typically during training
-            and_or_trees = self.logic_engine.reason(self.program, queries)
-            results = self.evaluator.evaluate(tensor_sources, and_or_trees, queries)
-            print("\n\nResults:\n ", results)
-        else:
-            print("\n\n Grouped query case \n\n")
-            # Grouped queries case, typically during testing
-            results = []
-            for query_group in queries:
-                and_or_trees = self.logic_engine.reason(self.program, query_group)
-                group_results = self.evaluator.evaluate(tensor_sources, and_or_trees, query_group)
-                # Aggregate group results
-                aggregated_result = group_results.max(dim=-1)[1]  # Taking the index of the max value
-                results.append(aggregated_result)
-            results = torch.cat(results, dim=0)
+        and_or_tree = self.logic_engine.reason(self.program, queries)
+        results = self.evaluator.evaluate(tensor_sources, and_or_tree, queries)
 
         print("\n\nResults: \n ", results, "\n")
         return results
