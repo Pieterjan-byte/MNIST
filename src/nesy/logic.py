@@ -1,4 +1,4 @@
-from nesy.term import Term, Clause, Fact
+from nesy.term import Term, Clause, Fact, Variable
 from nesy.parser import parse_term, parse_program
 from abc import ABC, abstractmethod
 from collections import namedtuple
@@ -13,8 +13,6 @@ class LogicEngine(ABC):
 class ForwardChaining(LogicEngine):
 
     def reason(self, program: tuple[Clause], queries: list[Term]):
-        # TODO: Implement this
-
         # Function to match and instantiate a clause with a query
         def instantiate_clause(clause, query):
             substitution = {}
@@ -26,7 +24,7 @@ class ForwardChaining(LogicEngine):
                 instantiated_body.append(instantiated_term)
             return instantiated_body
 
-        print("\n\nProgram: \n", program)
+        print("\nProgram: \n", program)
         print("\n\nQueries: \n", queries)
 
         # Initialize known facts
@@ -37,57 +35,96 @@ class ForwardChaining(LogicEngine):
             if isinstance(item, Fact):
                 # Treat Fact as a Clause with an empty body
                 known_facts.add(item.term)
-            elif isinstance(item, Clause) and not item.body:
-                # Handle empty-body Clauses as facts
-                known_facts.add(item.head)
 
         print("\n\nKnown facts: \n", known_facts)
+
+        # Initialize And-Or trees with placeholders
+        and_or_trees = [None] * len(queries)
 
         # Apply forward chaining
         inferred = True
         while inferred:
             inferred = False
-            for item in program:
-                if isinstance(item, Clause):
-                    if all(term in known_facts for term in item.body):
-                        if item.head not in known_facts:
-                            known_facts.add(item.head)
-                            inferred = True
+            # Inside the while loop for forward chaining
+            for clause in program:
+                if not isinstance(clause, Fact):
+                    new_facts_added, and_or_trees = add_substitutions(clause, known_facts, queries, and_or_trees)
+                    if new_facts_added:
+                        inferred = True
+
 
         print("\n\nKnown facts after forward chaining: \n", known_facts)
-
-        # Build the And-Or tree for each query
-        and_or_trees = []
-        for query in queries:
-            relevant_clauses = [clause for clause in program if isinstance(clause, Clause) and clause.head.functor == query.functor and len(clause.head.arguments) == len(query.arguments)]
-            and_nodes = []
-            for clause in relevant_clauses:
-                instantiated_body = instantiate_clause(clause, query)
-                and_nodes.append(And([Leaf(term) for term in instantiated_body]))
-
-            or_node = Or(and_nodes)
-            and_or_trees.append(or_node)
-
-        print("\n\n And or trees: \n", and_or_trees)
+        print("\n\nAnd-Or Trees: \n", and_or_trees, "\n\n")
 
         return and_or_trees
 
-        # Dummy example:
+def add_substitutions(clause, known_facts, queries, and_or_trees):
+    # Start with a list containing an empty substitution
+    complete_substitutions = [{}]
+    body = clause.body
+    new_facts_added = False
 
-        """query = parse_term("addition(tensor(images,0), tensor(images,1), 0)")
+    print("\n\nClause: \n\n", clause)
+
+    for term in body:
+        new_substitutions = []
+        for substitution in complete_substitutions:
+            for fact in known_facts:
+                if term.functor == fact.functor and len(term.arguments) == len(fact.arguments):
+                    new_substitution = substitution.copy()
+                    valid_substitution = True
+                    for term_arg, fact_arg in zip(term.arguments, fact.arguments):
+                        if isinstance(term_arg, Variable):
+                            # If the variable is already in the substitution, it must match the current fact
+                            if term_arg.name in new_substitution and new_substitution[term_arg.name] != fact_arg:
+                                valid_substitution = False
+                                break
+                            new_substitution[term_arg.name] = fact_arg
+                        elif term_arg != fact_arg:
+                            valid_substitution = False
+                            break
+                    if valid_substitution:
+                        new_substitutions.append(new_substitution)
+        complete_substitutions = new_substitutions
+
+    # Filter out incomplete substitutions
+    complete_substitutions = [sub for sub in complete_substitutions if is_complete_substitution(body, sub)]
+
+    for substitution in complete_substitutions:
+        substituted_head = substitute(clause.head, substitution)
+        if substituted_head not in known_facts:
+            known_facts.add(substituted_head)
+            new_facts_added = True
+            # Check if the substituted head matches any query
+            for i, query in enumerate(queries):
+                if substituted_head == query:
+                    # Construct And-Or tree for this query
+                    and_node = construct_and_or_tree_node(clause, substitution)
+                    if and_or_trees[i] is None:
+                        and_or_trees[i] = Or([and_node])
+                    else:
+                        and_or_trees[i].children.append(and_node)
+
+    return new_facts_added, and_or_trees
+
+def is_complete_substitution(body, substitution):
+    all_vars = set(var.name for term in body for var in term.arguments if isinstance(var, Variable))
+    return all_vars.issubset(substitution.keys())
 
 
-        Or = lambda x:  None
-        And = lambda x: None
-        Leaf = lambda x: None
-        and_or_tree = Or([
-            And([
-                Leaf(parse_term("digit(tensor(images,0), 0)")),
-                Leaf(parse_term("digit(tensor(images,1), 0)")),
-            ])
-        ])
+def substitute(term, substitution):
+    if isinstance(term, Variable) and term.name in substitution:
+        return substitution[term.name]
+    elif isinstance(term, Term):
+        substituted_arguments = tuple(substitute(arg, substitution) for arg in term.arguments)
+        return Term(term.functor, substituted_arguments)
+    else:
+        return term
 
-        return and_or_tree"""
+def construct_and_or_tree_node(clause, substitution):
+    children = [Leaf(substitute(term, substitution)) for term in clause.body]
+    return And(children)
+
 
 class Leaf:
     def __init__(self, term):
@@ -111,4 +148,21 @@ class Or:
     def __repr__(self):
         child_reprs = ', '.join([str(child) for child in self.children])
         return f"Or({child_reprs})"
+
+# Dummy example:
+
+"""query = parse_term("addition(tensor(images,0), tensor(images,1), 0)")
+
+
+Or = lambda x:  None
+And = lambda x: None
+Leaf = lambda x: None
+and_or_tree = Or([
+And([
+    Leaf(parse_term("digit(tensor(images,0), 0)")),
+    Leaf(parse_term("digit(tensor(images,1), 0)")),
+])
+])
+
+return and_or_tree"""
 
