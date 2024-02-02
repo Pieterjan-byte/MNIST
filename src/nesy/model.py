@@ -57,16 +57,16 @@ class NeSyModel(pl.LightningModule):
 
         # Check if the queries are single or grouped
         if isinstance(queries[0], Term):
-            print("\n\n Single  query case \n\n")
+            #print("\n\n Single  query case \n\n")
             # Single queries case, typically during training
             and_or_trees = self.logic_engine.reason(self.program, queries)
             results = self.evaluator.evaluate(tensor_sources, and_or_trees, queries)
         else:
-            print("\n\n Grouped query case \n\n")
+            #print("\n\n Grouped query case \n\n")
             # Grouped queries case, typically during testing
             results = []
             for query_group in queries:
-                print("\n\n Query group:\n\n", query_group)
+                #print("\n\n Query group:\n\n", query_group)
                 and_or_trees = self.logic_engine.reason(self.program, query_group)
                 group_results = self.evaluator.evaluate(tensor_sources, and_or_trees, query_group)
                 # Ensure group_results is 2D (1 row per group)
@@ -74,7 +74,7 @@ class NeSyModel(pl.LightningModule):
                 results.append(group_results)
             results = torch.cat(results, dim=0)  # Stacks along the new dimension
 
-        print("\n\nresults: \n ", results, "\n")
+        #print("\n\nresults: \n ", results, "\n")
         return results
 
     """Results should be of form:
