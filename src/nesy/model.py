@@ -10,6 +10,48 @@ from torch import nn
 from sklearn.metrics import accuracy_score
 from nesy.evaluator import Evaluator
 
+class CNN(nn.Module):
+    def __init__(self, input_size, num_classes):
+        """
+        init convolution and activation layers
+        Args:
+            input_size: (1,28,28)
+            num_classes: 10
+        """
+        self.n = num_classes
+        super(CNN, self).__init__()
+
+        self.layer1 = nn.Sequential(
+            nn.Conv2d(input_size[0], 32, kernel_size=5),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2))
+
+        self.layer2 = nn.Sequential(
+            nn.Conv2d(32, 64, kernel_size=5),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2))
+
+        self.fc1 = nn.Linear(4 * 4 * 64, num_classes)
+
+
+    def forward(self, x):
+        """
+        forward function describes how input tensor is transformed to output tensor
+        Args:
+            x: (Nx1x28x28) tensor
+        """
+        #We flatten the tensor
+        original_shape = x.shape
+        n_dims = len(original_shape)
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = x.reshape(x.size(0), -1)
+        o = self.fc1(x)
+        #We restore the original shape
+        o = o.view(*original_shape[0:n_dims-3], self.n)
+        return o
+
+
 class MNISTEncoder(nn.Module):
     def __init__(self, n):
         self.n = n

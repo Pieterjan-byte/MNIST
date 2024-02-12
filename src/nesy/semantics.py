@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-import torch
+import math
 
 
 class Semantics(ABC):
@@ -21,16 +21,16 @@ class SumProductSemiring(Semantics):
     # TODO: Implement this
 
     # Summation of a and b: AND(a,b) = a + b
-    def conjunction(self, a, b):
-        return a * b
+    def conjunction(self, *args):
+        return math.prod(args)
 
-    # Multiplication of a and b: OR(a,b) = a * b
-    def disjunction(self, a, b):
-        return a + b
+    def disjunction(self, *args):
+        return sum(args)
 
     # Flip the truth value or negate the value? NEG(a) = -a
     def negation(self, a):
         return 1 - a
+
 
 
 class LukasieviczTNorm(Semantics):
@@ -38,13 +38,17 @@ class LukasieviczTNorm(Semantics):
     # TODO: Implement this
     # We need to assign fuzzy truth values, range between 0 (completely false) and 1 (completely true)
 
-    # T-Norm: AND(a,b) = max(0, a + b - 1)
-    def conjunction(self, a, b):
-        return max(0, a + b - 1)
+    def conjunction(self, *args):
+        result = args[0]
+        for arg in args[1:]:
+            result = max(0, result + arg - 1)
+        return result
 
-    # T-norm: OR(a,b) = min(1, a + b)
-    def disjunction(self, a, b):
-        return min(1, a + b)
+    def disjunction(self, *args):
+        result = args[0]
+        for arg in args[1:]:
+            result = min(1, result + arg)
+        return result
 
     # T-Norm: NEG(a) = max(0, 1 - a)
     def negation(self, a):
@@ -54,11 +58,11 @@ class GodelTNorm(Semantics):
     # TODO: Implement this
     # We need to assign fuzzy truth values, range between 0 (completely false) and 1 (completely true)
 
-    def conjunction(self, a, b):
-        return min(a, b)
+    def conjunction(self, *args):
+        return min(args)
 
-    def disjunction(self, a, b):
-        return max(a, b)
+    def disjunction(self, *args):
+        return max(args)
 
     def negation(self, a):
         return 1 - a
@@ -67,11 +71,14 @@ class ProductTNorm(Semantics):
     # TODO: Implement this
     # We need to assign fuzzy truth values, range between 0 (completely false) and 1 (completely true)
 
-    def conjunction(self, a, b):
-        return a * b
+    def conjunction(self, *args):
+        return math.prod(args)
 
-    def disjunction(self, a, b):
-        return a + b - a * b
+    def disjunction(self, *args):
+        result = args[0]
+        for arg in args[1:]:
+            result = result + arg - result * arg
+        return result
 
     def negation(self, a):
         return 1 - a
