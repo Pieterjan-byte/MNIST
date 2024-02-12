@@ -17,7 +17,7 @@ def custom_collate(batch):
 
 class AdditionTask(Dataset):
 
-    def __init__(self, n=2, train=True, n_classes=10, nr_examples=None):
+    def __init__(self, n=3, train=True, n_classes=10, nr_examples=None):
         # assert n == 2, "Only n=2 is supported at the moment"
         self.train = train
 
@@ -70,7 +70,7 @@ class AdditionTask(Dataset):
             # In MNIST Addition, training queries for a single pair of images check for a given sum (i.e. the target)
             # Therefore, we have a List[Term], each element of the list correspond to a single pair of images
 
-            query_template = "addition({})."
+            query_template = "addition({}, {})."
             tensor_indices = ', '.join("tensor(images, {})".format(i) for i in range(self.num_digits))
             query = parse_program(query_template.format(tensor_indices, target))[0].term
             tensor_sources = {"images": images}
