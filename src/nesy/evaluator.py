@@ -30,7 +30,6 @@ class Evaluator():
                 #print("\n\nresult FINAL OR: \n\n", children_values[0] )
                 return children_values[0]  # Return the single child's value directly
             #print("\n\nresult OR: \n\n", self.label_semantics.disjunction(*children_values))
-            #print(children_values)
             return self.label_semantics.disjunction(*children_values)
 
     def evaluate_leaf(self, leaf, tensor_sources):

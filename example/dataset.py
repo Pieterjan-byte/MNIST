@@ -49,7 +49,7 @@ class AdditionTask(Dataset):
         program_string += "\n"
         program_string += "\n".join(
             [f"nn(digit, tensor(images, {x}), {y}) :: digit(tensor(images, {x}),{y})." for x, y in
-             product(range(self.n_classes), range(self.n_classes))])
+             product(range(self.num_digits), range(self.n_classes))])
         self.program = parse_program(program_string)
 
         if nr_examples is not None:

@@ -1,3 +1,8 @@
+*.pyc
+# python cache
 /__pycache__/
+*.pyc
+# dataset
 /data/
+# logs of neural net
 /lightning_logs/
