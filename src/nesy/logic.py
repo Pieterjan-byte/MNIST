@@ -26,7 +26,7 @@ class ForwardChaining(LogicEngine):
                 # Treat Fact as a Clause with an empty body
                 known_facts.add(item.term)
 
-        print("\n\nKnown facts: \n", known_facts)
+        #print("\n\nKnown facts: \n", known_facts)
 
         # Initialize And-Or trees with placeholders
         and_or_trees = [None] * len(queries)
@@ -43,8 +43,8 @@ class ForwardChaining(LogicEngine):
                         inferred = True
 
 
-        print("\n\nKnown facts after forward chaining: \n", known_facts)
-        print("\n\nAnd-Or Trees: \n", and_or_trees, "\n\n")
+        #print("\n\nKnown facts after forward chaining: \n", known_facts)
+        #print("\n\nAnd-Or Trees: \n", and_or_trees, "\n\n")
 
         return and_or_trees
 

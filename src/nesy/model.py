@@ -81,7 +81,8 @@ class NeSyModel(pl.LightningModule):
                 neural_predicates: torch.nn.ModuleDict,
                 logic_engine: LogicEngine,
                 label_semantics: Semantics,
-                 learning_rate = 0.001, *args, **kwargs):
+                n_digits: int,
+                learning_rate = 0.0001, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.neural_predicates = neural_predicates
         self.logic_engine = logic_engine
@@ -90,6 +91,7 @@ class NeSyModel(pl.LightningModule):
         self.learning_rate = learning_rate
         self.bce = torch.nn.BCELoss()
         self.evaluator = Evaluator(neural_predicates=neural_predicates, label_semantics=label_semantics)
+        self.n_digits = n_digits
 
     def forward(self, tensor_sources: Dict[str, torch.Tensor],  queries: List[Term] | List[List[Term]]):
         # TODO: Note that you need to handle both the cases of single queries (List[Term]), like during training
@@ -99,35 +101,51 @@ class NeSyModel(pl.LightningModule):
 
         # Check if the queries are single or grouped
         if isinstance(queries[0], Term):
-            print("\n\n Single  query case \n\n")
+            #print("\n\n Single  query case \n\n")
             # Single queries case, typically during training
             and_or_trees = self.logic_engine.reason(self.program, queries)
             results = self.evaluator.evaluate(tensor_sources, and_or_trees, queries)
         else:
-            print("\n\n Grouped query case \n\n")
+            #print("\n\n Grouped query case \n\n")
+            #print("\n\n Query group:\n\n", queries)
             # Grouped queries case, typically during testing
             results = []
             for query_group in queries:
-                print("\n\n Query group:\n\n", query_group)
+                #print("\n\n Query group:\n\n", query_group)
                 and_or_trees = self.logic_engine.reason(self.program, query_group)
                 group_results = self.evaluator.evaluate(tensor_sources, and_or_trees, query_group)
                 # Ensure group_results is 2D (1 row per group)
                 group_results = group_results.unsqueeze(0)  # Adds a new dimension at position 0
                 results.append(group_results)
+                tensor_sources['images'] = tensor_sources['images'][1:]
             results = torch.cat(results, dim=0)  # Stacks along the new dimension
 
-        print("\n\nresults: \n ", results, "\n")
+        #print("\n\nresults: \n ", results, "\n")
         return results
 
-    """Results should be of form:
-        tensor([[1., 1., 1.],
-        [1., 1., 1.]])
+    def training_step(self, I, batch_idx):
+        tensor_sources, queries, y_true = I
+        #print("\n\n Training step I: \n\n ", I)
+        y_preds = self.forward(tensor_sources, queries)
+        #print("\n\n Y_preds training: \n\n ", y_preds.squeeze(), "\n\n Y_true training: \n\n ", y_true.float().squeeze())
+        loss = self.bce(y_preds.squeeze(), y_true.float().squeeze())
+        self.log("train_loss", loss, on_epoch=True, prog_bar=True)
+        return loss
 
-        and are right now of shape:
-        Group results:
-        tensor([[0.2327, 0.2629],
-        [0.4998, 0.4997],
-        [0.2675, 0.2374]]) """
+
+    def validation_step(self, I, batch_idx):
+        tensor_sources, queries, y_true = I
+        #print("\n\n Validation step I: \n\n ", I)
+        #print("\n\n Tensor source: \n\n ", tensor_sources['images'][1:])
+        y_preds = self.forward(tensor_sources, queries)
+        print("\n\n Y_preds_validate: \n\n ", y_preds.argmax(dim=-1), "\n True Y: \n", y_true)
+        accuracy = accuracy_score(y_true, y_preds.argmax(dim=-1))
+        self.log("test_acc", accuracy, on_step=True, on_epoch=True, prog_bar=True)
+        return accuracy
+
+    def configure_optimizers(self):
+        optimizer = torch.optim.AdamW(self.parameters(), lr=self.learning_rate)
+        return optimizer
 
     """
 
@@ -138,24 +156,6 @@ class NeSyModel(pl.LightningModule):
         and_or_tree = self.logic_engine.reason(self.program, queries)
         results = self.evaluator.evaluate(tensor_sources, and_or_tree, queries)
         return results
-        
+
     """
 
-    def training_step(self, I, batch_idx):
-        tensor_sources, queries, y_true = I
-        y_preds = self.forward(tensor_sources, queries)
-        loss = self.bce(y_preds.squeeze(), y_true.float().squeeze())
-        self.log("train_loss", loss, on_epoch=True, prog_bar=True)
-        return loss
-
-
-    def validation_step(self, I, batch_idx):
-        tensor_sources, queries, y_true = I
-        y_preds = self.forward(tensor_sources, queries)
-        accuracy = accuracy_score(y_true, y_preds.argmax(dim=-1))
-        self.log("test_acc", accuracy, on_step=True, on_epoch=True, prog_bar=True)
-        return accuracy
-
-    def configure_optimizers(self):
-        optimizer = torch.optim.AdamW(self.parameters(), lr=self.learning_rate)
-        return optimizer

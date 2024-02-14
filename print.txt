@@ -37,3 +37,49 @@ Or(And(Leaf(digit(X,N1)), Leaf(digit(Y,N2)), Leaf(add(N1,N2,Z))))]
   [Or(And(Leaf(digit(tensor(images,0),N1)), Leaf(digit(tensor(images,1),N2)), Leaf(add(N1,N2,0)))), 
   Or(And(Leaf(digit(tensor(images,0),N1)), Leaf(digit(tensor(images,1),N2)), Leaf(add(N1,N2,1)))), 
   Or(And(Leaf(digit(tensor(images,0),N1)), Leaf(digit(tensor(images,1),N2)), Leaf(add(N1,N2,2))))]
+
+
+
+  Grouped query case 
+
+
+
+
+ Query group:
+
+ [addition(tensor(images,0),tensor(images,1),0), addition(tensor(images,0),tensor(images,1),1), addition(tensor(images,0),tensor(images,1),2), addition(tensor(images,0),tensor(images,1),3), addition(tensor(images,0),tensor(images,1),4), addition(tensor(images,0),tensor(images,1),5), addition(tensor(images,0),tensor(images,1),6)]
+
+Program: 
+ (addition(X,Y,Z) :- digit(X,N1),digit(Y,N2),add(N1,N2,Z), add(0,0,0), add(0,1,1), add(0,2,2), add(0,3,3), add(1,0,1), add(1,1,2), add(1,2,3), add(1,3,4), add(2,0,2), add(2,1,3), add(2,2,4), add(2,3,5), add(3,0,3), add(3,1,4), add(3,2,5), add(3,3,6), nn(digit,tensor(images,0),0)::digit(tensor(images,0),0), nn(digit,tensor(images,0),1)::digit(tensor(images,0),1), nn(digit,tensor(images,0),2)::digit(tensor(images,0),2), nn(digit,tensor(images,0),3)::digit(tensor(images,0),3), nn(digit,tensor(images,1),0)::digit(tensor(images,1),0), nn(digit,tensor(images,1),1)::digit(tensor(images,1),1), nn(digit,tensor(images,1),2)::digit(tensor(images,1),2), nn(digit,tensor(images,1),3)::digit(tensor(images,1),3))
+
+
+Queries: 
+ [addition(tensor(images,0),tensor(images,1),0), addition(tensor(images,0),tensor(images,1),1), addition(tensor(images,0),tensor(images,1),2), addition(tensor(images,0),tensor(images,1),3), addition(tensor(images,0),tensor(images,1),4), addition(tensor(images,0),tensor(images,1),5), addition(tensor(images,0),tensor(images,1),6)]
+
+
+ Query group:
+
+ [addition(tensor(images,0),tensor(images,1),0), addition(tensor(images,0),tensor(images,1),1), addition(tensor(images,0),tensor(images,1),2), addition(tensor(images,0),tensor(images,1),3), addition(tensor(images,0),tensor(images,1),4), addition(tensor(images,0),tensor(images,1),5), addition(tensor(images,0),tensor(images,1),6)]
+
+Program: 
+ (addition(X,Y,Z) :- digit(X,N1),digit(Y,N2),add(N1,N2,Z), add(0,0,0), add(0,1,1), add(0,2,2), add(0,3,3), add(1,0,1), add(1,1,2), add(1,2,3), add(1,3,4), add(2,0,2), add(2,1,3), add(2,2,4), add(2,3,5), add(3,0,3), add(3,1,4), add(3,2,5), add(3,3,6), nn(digit,tensor(images,0),0)::digit(tensor(images,0),0), nn(digit,tensor(images,0),1)::digit(tensor(images,0),1), nn(digit,tensor(images,0),2)::digit(tensor(images,0),2), nn(digit,tensor(images,0),3)::digit(tensor(images,0),3), nn(digit,tensor(images,1),0)::digit(tensor(images,1),0), nn(digit,tensor(images,1),1)::digit(tensor(images,1),1), nn(digit,tensor(images,1),2)::digit(tensor(images,1),2), nn(digit,tensor(images,1),3)::digit(tensor(images,1),3))
+
+
+Queries: 
+ [addition(tensor(images,0),tensor(images,1),0), addition(tensor(images,0),tensor(images,1),1), addition(tensor(images,0),tensor(images,1),2), addition(tensor(images,0),tensor(images,1),3), addition(tensor(images,0),tensor(images,1),4), addition(tensor(images,0),tensor(images,1),5), addition(tensor(images,0),tensor(images,1),6)]
+
+
+results: 
+  tensor([[0.0958, 0.1065, 0.0819, 0.3983, 0.0829, 0.1017, 0.1052],
+        [0.0958, 0.1065, 0.0819, 0.3983, 0.0829, 0.1017, 0.1052]]) 
+
+
+
+ Y_preds_validate: 
+
+  tensor([3, 3]) 
+ True Y: 
+ tensor([3, 3])
+Epoch 1: 100%|█| 6189/6189 [02:45<00:00, 37.36it/s, v_num=5, train_loss_step=0.752, test_acc_step=1.000, test_acc_epoch=0.560, train_loss_ep`Trainer.fit` stopped: `max_epochs=2` reached.                                                                                              
+Epoch 1: 100%|█| 6189/6189 [02:45<00:00, 37.36it/s, v_num=5, train_loss_step=0.752, test_acc_step=1.000, test_acc_epoch=0.560, train_loss_ep
+(base) MacBook-Air-van-Jacob:MNIST jacobski$ 

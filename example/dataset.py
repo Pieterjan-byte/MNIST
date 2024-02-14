@@ -68,7 +68,7 @@ class AdditionTask(Dataset):
             # In this way, we can compute the most probable sum.
             # Therefore, we have a List[List[Term]], each element of the outer list correspond to a single pair of
             # images. Each element of the inner list correspond to a possible sum.
-            #print("\n\n Test phase \n\n")
+            print("\n\n Test phase \n\n")
 
             queries = [parse_program("addition(tensor(images, 0), tensor(images,1), {}).".format(z))[0].term
                        for z in range(self.n_classes * 2 - 1)]
