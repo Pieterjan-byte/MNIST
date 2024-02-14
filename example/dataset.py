@@ -17,7 +17,7 @@ def custom_collate(batch):
 
 class AdditionTask(Dataset):
 
-    def __init__(self, n=3, train=True, n_classes=10, nr_examples=None):
+    def __init__(self, n=2, train=True, n_classes=10, nr_examples=None):
         # assert n == 2, "Only n=2 is supported at the moment"
         self.train = train
 
