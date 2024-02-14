@@ -14,8 +14,8 @@ class ForwardChaining(LogicEngine):
 
     def reason(self, program: tuple[Clause], queries: list[Term]):
 
-        #print("\nProgram: \n", program)
-        #print("\n\nQueries: \n", queries)
+        print("\nProgram: \n", program)
+        print("\n\nQueries: \n", queries)
 
         # Initialize known facts
         known_facts = set()
