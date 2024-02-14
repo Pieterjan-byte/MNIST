@@ -138,7 +138,7 @@ class NeSyModel(pl.LightningModule):
         #print("\n\n Validation step I: \n\n ", I)
         #print("\n\n Tensor source: \n\n ", tensor_sources['images'][1:])
         y_preds = self.forward(tensor_sources, queries)
-        print("\n\n Y_preds_validate: \n\n ", y_preds.argmax(dim=-1), "\n True Y: \n", y_true)
+        #print("\n\n Y_preds_validate: \n\n ", y_preds.argmax(dim=-1), "\n True Y: \n", y_true)
         accuracy = accuracy_score(y_true, y_preds.argmax(dim=-1))
         self.log("test_acc", accuracy, on_step=True, on_epoch=True, prog_bar=True)
         return accuracy
