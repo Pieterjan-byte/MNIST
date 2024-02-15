@@ -9,6 +9,7 @@ from nesy.logic import LogicEngine
 from torch import nn
 from sklearn.metrics import accuracy_score
 from nesy.evaluator import Evaluator
+import math
 
 class CNN(nn.Module):
     def __init__(self, input_size, num_classes):
@@ -82,7 +83,7 @@ class NeSyModel(pl.LightningModule):
                 logic_engine: LogicEngine,
                 label_semantics: Semantics,
                 n_digits: int,
-                learning_rate = 0.0001, *args, **kwargs):
+                learning_rate = 0.001, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.neural_predicates = neural_predicates
         self.logic_engine = logic_engine
@@ -104,21 +105,25 @@ class NeSyModel(pl.LightningModule):
             #print("\n\n Single  query case \n\n")
             # Single queries case, typically during training
             and_or_trees = self.logic_engine.reason(self.program, queries)
-            results = self.evaluator.evaluate(tensor_sources, and_or_trees, queries)
+            results = self.evaluator.evaluate(tensor_sources, and_or_trees, queries, i=0)
         else:
             #print("\n\n Grouped query case \n\n")
             #print("\n\n Query group:\n\n", queries)
             # Grouped queries case, typically during testing
             results = []
+            i = 0
             for query_group in queries:
                 #print("\n\n Query group:\n\n", query_group)
                 and_or_trees = self.logic_engine.reason(self.program, query_group)
-                group_results = self.evaluator.evaluate(tensor_sources, and_or_trees, query_group)
+                group_results = self.evaluator.evaluate(tensor_sources, and_or_trees, query_group, i)
                 # Ensure group_results is 2D (1 row per group)
                 group_results = group_results.unsqueeze(0)  # Adds a new dimension at position 0
                 results.append(group_results)
-                tensor_sources['images'] = tensor_sources['images'][1:]
+                i += 1
+                #tensor_sources['images'] = tensor_sources['images'][1:]
             results = torch.cat(results, dim=0)  # Stacks along the new dimension
+
+            #print("\n\n Results: \n\n", results)
 
         #print("\n\nresults: \n ", results, "\n")
         return results

@@ -1,5 +1,6 @@
 import torch
 from nesy.logic import And, Or, Leaf
+import copy
 
 class Evaluator():
 
@@ -7,32 +8,32 @@ class Evaluator():
         self.neural_predicates = neural_predicates
         self.label_semantics = label_semantics
 
-    def evaluate(self, tensor_sources, and_or_trees, queries):
+    def evaluate(self, tensor_sources, and_or_trees, queries, i):
         # TODO: Implement this
         results = []
         for and_or_tree in and_or_trees:
-            result = self.evaluate_tree(and_or_tree, tensor_sources)[0]
+            result = self.evaluate_tree(and_or_tree, tensor_sources, i)[0]
             #print("\n\nresult: \n\n", result)
             results.append(result)
         return torch.stack(results)
 
-    def evaluate_tree(self, node, tensor_sources):
+    def evaluate_tree(self, node, tensor_sources, i):
         if isinstance(node, Leaf):
             #print("\n\nresult Leaf: \n\n", self.evaluate_leaf(node, tensor_sources))
-            return self.evaluate_leaf(node, tensor_sources)
+            return self.evaluate_leaf(node, tensor_sources, i)
         elif isinstance(node, And):
-            children_values = [self.evaluate_tree(child, tensor_sources) for child in node.children]
+            children_values = [self.evaluate_tree(child, tensor_sources, i) for child in node.children]
             #print("\n\nresult AND: \n\n", self.label_semantics.conjunction(*children_values))
             return self.label_semantics.conjunction(*children_values)
         elif isinstance(node, Or):
-            children_values = [self.evaluate_tree(child, tensor_sources) for child in node.children]
+            children_values = [self.evaluate_tree(child, tensor_sources, i) for child in node.children]
             if len(children_values) == 1:
                 #print("\n\nresult FINAL OR: \n\n", children_values[0] )
                 return children_values[0]  # Return the single child's value directly
             #print("\n\nresult OR: \n\n", self.label_semantics.disjunction(*children_values))
             return self.label_semantics.disjunction(*children_values)
 
-    def evaluate_leaf(self, leaf, tensor_sources):
+    def evaluate_leaf(self, leaf, tensor_sources, i):
 
         # Assuming leaf is a neural predicate
         neural_predicate = leaf.term.functor
@@ -54,7 +55,10 @@ class Evaluator():
 
         #print("\n  tensor name:\n  ",  tensor_name, "\n  image_index:\n  ",  image_index, "\n \n ")
 
-        prob = self.neural_predicates[neural_predicate](tensor_sources[tensor_name][:, image_index])[:, nb_index]
+        tensor_source = copy.deepcopy(tensor_sources)
+        tensor_source['images'] = tensor_sources['images'][i:]
+
+        prob = self.neural_predicates[neural_predicate](tensor_source[tensor_name][:, image_index])[:, nb_index]
 
         #print("\n\nprob: \n\n", prob)
 

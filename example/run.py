@@ -6,8 +6,11 @@ from nesy.semantics import SumProductSemiring, LukasieviczTNorm, GodelTNorm, Pro
 import torch
 import pytorch_lightning as pl
 
-task_train = AdditionTask(n=3, n_classes=2)
-task_test = AdditionTask(n=3, n_classes=2, train=False)
+n_classes = 2
+n_addition = 3
+
+task_train = AdditionTask(n=n_addition, n_classes=n_classes)
+task_test = AdditionTask(n=n_addition, n_classes=n_classes, train=False)
 
 neural_predicates = torch.nn.ModuleDict({"digit": MNISTEncoder(task_train.n_classes)})
 
@@ -20,4 +23,4 @@ model = NeSyModel(program=task_train.program,
 trainer = pl.Trainer(max_epochs=1)
 trainer.fit(model=model,
             train_dataloaders=task_train.dataloader(batch_size=2),
-            val_dataloaders=task_test.dataloader(batch_size=2))
+            val_dataloaders=task_test.dataloader(batch_size=64))
