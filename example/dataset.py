@@ -4,7 +4,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision.datasets.mnist import MNIST
 import torchvision.transforms as transforms
-from itertools import product
+from itertools import permutations, product
 from torch.utils.data import default_collate
 
 transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
@@ -18,7 +18,7 @@ def custom_collate(batch):
 class AdditionTask(Dataset):
 
     def __init__(self, n=2, train=True, n_classes=10, nr_examples=None):
-        assert n == 2, "Only n=2 is supported at the moment"
+        # assert n == 2, "Only n=2 is supported at the moment"
         self.train = train
 
         # We iterate over the MNIST dataset to apply the transform
@@ -32,9 +32,20 @@ class AdditionTask(Dataset):
         self.original_targets = torch.tensor(self.original_targets)
         self.n_classes = n_classes
         self.num_digits = n
-        program_string = "addition(X,Y,Z) :- digit(X,N1), digit(Y,N2), add(N1,N2,Z).\n"
+        #program_string = "addition(X1,X2,Sum) :- digit(X1,N1), digit(X2,N2), add(N1,N2,Sum).\n"
+        program_string = "addition("
+        program_string += ",".join(
+            [f"X{x}" for x in range(1, self.num_digits + 1)])
+        program_string += ",Sum) :- "
+        program_string += ", ".join(
+            [f"digit(X{x},N{x})" for x in range(1, self.num_digits + 1)])
+        program_string += ", add("
+        program_string += ",".join(
+            [f"N{x}" for x in range(1, self.num_digits + 1)])
+        program_string += ",Sum).\n"
+
         program_string += "\n".join(
-            [f"add({x}, {y}, {x + y})." for x in range(self.n_classes) for y in range(self.n_classes)])
+            [f"add({', '.join(map(str, p))}, {sum(p)})." for p in product(range(self.n_classes), repeat=self.num_digits)])
         program_string += "\n"
         program_string += "\n".join(
             [f"nn(digit, tensor(images, {x}), {y}) :: digit(tensor(images, {x}),{y})." for x, y in
@@ -60,7 +71,9 @@ class AdditionTask(Dataset):
             # In MNIST Addition, training queries for a single pair of images check for a given sum (i.e. the target)
             # Therefore, we have a List[Term], each element of the list correspond to a single pair of images
 
-            query = parse_program("addition(tensor(images, 0), tensor(images,1), {}).".format(target))[0].term
+            query_template = "addition({}, {})."
+            tensor_indices = ', '.join("tensor(images, {})".format(i) for i in range(self.num_digits))
+            query = parse_program(query_template.format(tensor_indices, target))[0].term
             tensor_sources = {"images": images}
 
             return tensor_sources, query, torch.tensor([1.0])
@@ -71,8 +84,10 @@ class AdditionTask(Dataset):
             # images. Each element of the inner list correspond to a possible sum.
             #print("\n\n Test phase \n\n")
 
-            queries = [parse_program("addition(tensor(images, 0), tensor(images,1), {}).".format(z))[0].term
-                       for z in range(self.n_classes * 2 - 1)]
+            queries = [parse_program("addition({}, {}).".format(
+            ', '.join("tensor(images, {})".format(i) for i in range(self.num_digits)), z))[0].term
+            for z in range(self.n_classes * self.num_digits - (self.num_digits - 1))]
+
             tensor_sources = {"images": images}
 
             return tensor_sources, queries, target

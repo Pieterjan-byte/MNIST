@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import math
+import torch
 
 
 class Semantics(ABC):
@@ -18,16 +19,14 @@ class Semantics(ABC):
 
 
 class SumProductSemiring(Semantics):
-    # TODO: Implement this
+    # TODO: Fix this because possibly not correct?
 
-    # Summation of a and b: AND(a,b) = a + b
     def conjunction(self, *args):
         return math.prod(args)
 
     def disjunction(self, *args):
         return sum(args)
 
-    # Flip the truth value or negate the value? NEG(a) = -a
     def negation(self, a):
         return 1 - a
 
@@ -35,41 +34,40 @@ class SumProductSemiring(Semantics):
 
 class LukasieviczTNorm(Semantics):
 
-    # TODO: Implement this
-    # We need to assign fuzzy truth values, range between 0 (completely false) and 1 (completely true)
+    # TODO: Correct?
 
     def conjunction(self, *args):
-        result = args[0]
-        for arg in args[1:]:
-            result = max(0, result + arg - 1)
+        print("ARGS\n\n", args)
+        result = torch.max(torch.zeros_like(args[0]), sum(args) - (len(args) - 1))
         return result
 
     def disjunction(self, *args):
-        result = args[0]
-        for arg in args[1:]:
-            result = min(1, result + arg)
+        result = torch.min(torch.zeros_like(args[0]) + 1, sum(args))
         return result
 
-    # T-Norm: NEG(a) = max(0, 1 - a)
     def negation(self, a):
         return 1 - a
 
 class GodelTNorm(Semantics):
-    # TODO: Implement this
-    # We need to assign fuzzy truth values, range between 0 (completely false) and 1 (completely true)
+    # TODO: Correct?
 
     def conjunction(self, *args):
-        return min(args)
+        result = args[0]
+        for arg in args[1:]:
+            result = torch.min(result, arg)
+        return result
 
     def disjunction(self, *args):
-        return max(args)
+        result = args[0]
+        for arg in args[1:]:
+            result = torch.max(result, arg)
+        return result
 
     def negation(self, a):
         return 1 - a
 
 class ProductTNorm(Semantics):
-    # TODO: Implement this
-    # We need to assign fuzzy truth values, range between 0 (completely false) and 1 (completely true)
+    # TODO: disjunction is wrong?
 
     def conjunction(self, *args):
         return math.prod(args)
