@@ -38,7 +38,7 @@ class AdditionTask(Dataset):
         program_string += "\n"
         program_string += "\n".join(
             [f"nn(digit, tensor(images, {x}), {y}) :: digit(tensor(images, {x}),{y})." for x, y in
-             product(range(self.num_digits), range(self.n_classes))])
+            product(range(self.num_digits), range(self.n_classes))])
         self.program = parse_program(program_string)
 
         if nr_examples is not None:
@@ -48,6 +48,7 @@ class AdditionTask(Dataset):
                 self.nr_examples = nr_examples
         else:
             self.nr_examples = len(self.original_images) // self.num_digits
+            #print('\n\n nr.examples: \n\n', self.nr_examples)
 
     def __getitem__(self, index):
         images = self.original_images[index * self.num_digits: (index + 1) * self.num_digits]
@@ -68,7 +69,7 @@ class AdditionTask(Dataset):
             # In this way, we can compute the most probable sum.
             # Therefore, we have a List[List[Term]], each element of the outer list correspond to a single pair of
             # images. Each element of the inner list correspond to a possible sum.
-            print("\n\n Test phase \n\n")
+            #print("\n\n Test phase \n\n")
 
             queries = [parse_program("addition(tensor(images, 0), tensor(images,1), {}).".format(z))[0].term
                        for z in range(self.n_classes * 2 - 1)]
