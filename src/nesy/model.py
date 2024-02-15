@@ -98,52 +98,63 @@ class NeSyModel(pl.LightningModule):
         # TODO: Note that you need to handle both the cases of single queries (List[Term]), like during training
         #  or of grouped queries (List[List[Term]]), like during testing.
         #  Check how the dataset provides such queries.
+        """Forward step of the Neural Network
 
+        Args:
+            tensor_sources (Dict[str, torch.Tensor]): Dictionary containing the MNIST Images in the form of tensors
+            queries (list[Term]): queries asking for the probability which images sum up to a sum
+
+        Returns:
+            torch.Tensor: Tensor containing probabilities
+        """
 
         # Check if the queries are single or grouped
         if isinstance(queries[0], Term):
-            #print("\n\n Single  query case \n\n")
-            # Single queries case, typically during training
             and_or_trees = self.logic_engine.reason(self.program, queries)
             results = self.evaluator.evaluate(tensor_sources, and_or_trees, queries, i=0)
         else:
-            #print("\n\n Grouped query case \n\n")
-            #print("\n\n Query group:\n\n", queries)
-            # Grouped queries case, typically during testing
             results = []
             i = 0
             for query_group in queries:
-                #print("\n\n Query group:\n\n", query_group)
                 and_or_trees = self.logic_engine.reason(self.program, query_group)
                 group_results = self.evaluator.evaluate(tensor_sources, and_or_trees, query_group, i)
-                # Ensure group_results is 2D (1 row per group)
-                group_results = group_results.unsqueeze(0)  # Adds a new dimension at position 0
+                group_results = group_results.unsqueeze(0)
                 results.append(group_results)
                 i += 1
-                #tensor_sources['images'] = tensor_sources['images'][1:]
-            results = torch.cat(results, dim=0)  # Stacks along the new dimension
+            results = torch.cat(results, dim=0)
 
-            #print("\n\n Results: \n\n", results)
-
-        #print("\n\nresults: \n ", results, "\n")
         return results
 
     def training_step(self, I, batch_idx):
+        """Loss calculation during training step
+
+        Args:
+            I (tensor_sources, queries, torch.tensor): Indexation on the AdditionTask class (getitem)
+            batch_idx (int): batch counter
+
+        Returns:
+            float: The loss calculated for this Training step
+        """
         tensor_sources, queries, y_true = I
-        #print("\n\n Training step I: \n\n ", I)
+        print(batch_idx)
         y_preds = self.forward(tensor_sources, queries)
-        #print("\n\n Y_preds training: \n\n ", y_preds.squeeze(), "\n\n Y_true training: \n\n ", y_true.float().squeeze())
         loss = self.bce(y_preds.squeeze(), y_true.float().squeeze())
         self.log("train_loss", loss, on_epoch=True, prog_bar=True)
         return loss
 
 
     def validation_step(self, I, batch_idx):
+        """Accuracy calculation during validation step
+
+        Args:
+            I (tensor_sources, queries, torch.tensor): Indexation on the AdditionTask class (getitem)
+            batch_idx (int): batch counter
+
+        Returns:
+            float: The accuracy calculated during the Validation step
+        """
         tensor_sources, queries, y_true = I
-        #print("\n\n Validation step I: \n\n ", I)
-        #print("\n\n Tensor source: \n\n ", tensor_sources['images'][1:])
         y_preds = self.forward(tensor_sources, queries)
-        #print("\n\n Y_preds_validate: \n\n ", y_preds.argmax(dim=-1), "\n True Y: \n", y_true)
         accuracy = accuracy_score(y_true, y_preds.argmax(dim=-1))
         self.log("test_acc", accuracy, on_step=True, on_epoch=True, prog_bar=True)
         return accuracy
@@ -151,16 +162,3 @@ class NeSyModel(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.parameters(), lr=self.learning_rate)
         return optimizer
-
-    """
-
-    def forward(self, tensor_sources: Dict[str, torch.Tensor],  queries: List[Term] | List[List[Term]]):
-        # TODO: Note that you need to handle both the cases of single queries (List[Term]), like during training
-        #  or of grouped queries (List[List[Term]]), like during testing.
-        #  Check how the dataset provides such queries.
-        and_or_tree = self.logic_engine.reason(self.program, queries)
-        results = self.evaluator.evaluate(tensor_sources, and_or_tree, queries)
-        return results
-
-    """
-
