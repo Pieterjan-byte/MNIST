@@ -19,18 +19,22 @@ def plot_logicscale_step():
 
 def plot_logicscale_total():
     # Your list of values
-    y_values = [0.2376, 3.8531, 10.7715, 22.5603, 51.0763, 137.3049, 203.6008, 369.4450, 572.9217, 858.1767]
+    y_values = [0, 0.2376, 3.8531, 10.7715, 22.5603, 51.0763, 137.3049, 203.6008, 369.4450, 572.9217, 858.1767]
 
     # Generate x values starting from zero with the same length as y_values
     x_values = list(range(len(y_values)))
 
     # Plotting the data
-    plt.plot(x_values, y_values, marker='o', linestyle='-')
+    plt.plot(x_values, y_values, linestyle='-')
 
     # Adding labels and title
     plt.xlabel('Number of classes')
     plt.ylabel('Time (s)')
     plt.title('Scaling of logic engine')
+
+    #plt.xticks(range(len(y_values)))
+
+    plt.grid(True)
 
     # Display the plot
     plt.show()

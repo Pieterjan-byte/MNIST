@@ -25,12 +25,14 @@ def plot_digitscale_total():
     x_values = list(range(len(y_values)))
 
     # Plotting the data
-    plt.plot(x_values, y_values, marker='o', linestyle='-')
+    plt.plot(x_values, y_values, linestyle='-')
 
     # Setting the range of the y-axis
     plt.ylim(0, 1500)
 
     plt.xticks(range(len(y_values)))
+
+    plt.grid(True)
 
     # Adding labels and title
     plt.xlabel('Number of digits')
