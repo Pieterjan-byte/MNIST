@@ -16,7 +16,8 @@ def custom_collate(batch):
 
 
 class AdditionTask(Dataset):
-    """class containing the MNIST addition task
+    """
+    Class containing the MNIST addition task
 
     Args:
         Dataset (class): MNIST dataset
@@ -27,6 +28,7 @@ class AdditionTask(Dataset):
 
         self.original_images = []
         self.original_targets = []
+        # collect all relevant images from the MNIST dataset
         for x,y in  MNIST('data/MNIST/', train=train, download=True, transform=transform):
             if y < n_classes:
                 self.original_images.append(x)
@@ -37,6 +39,8 @@ class AdditionTask(Dataset):
         self.n_classes = n_classes
         self.num_digits = n
 
+        # construct the prolog logic program. This includes the addition clause and initial facts
+        # addition clause of the form: addition(X,Y,Z) :- digit(X, N1), digit(Y, N2), add(N1, N2, Sum)
         program_string = "addition("
         program_string += ",".join(
             [f"X{x}" for x in range(1, self.num_digits + 1)])
@@ -48,12 +52,17 @@ class AdditionTask(Dataset):
             [f"N{x}" for x in range(1, self.num_digits + 1)])
         program_string += ",Sum).\n"
 
+        # facts of the form: add(N1, N2, Sum)
         program_string += "\n".join(
             [f"add({', '.join(map(str, p))}, {sum(p)})." for p in product(range(self.n_classes), repeat=self.num_digits)])
         program_string += "\n"
+        # construction of the neural predicates (weighted facts)
+        # neural predicates of the form: nn(digit, tensor(images, 0), 0) :: digit(tensor(images, 0),0)
         program_string += "\n".join(
             [f"nn(digit, tensor(images, {x}), {y}) :: digit(tensor(images, {x}),{y})." for x, y in
             product(range(self.num_digits), range(self.n_classes))])
+
+        # parsing of the program string
         self.program = parse_program(program_string)
 
         if nr_examples is not None:
@@ -69,17 +78,22 @@ class AdditionTask(Dataset):
         targets = self.original_targets[index * self.num_digits: (index + 1) * self.num_digits]
         target = int(targets.sum())
 
+        # Construction of the queries
+        # query of the form: addition(tensor(images, 0), tensor(images, 1), Sum)
         if self.train:
             # Train phase
+            # One query with the target sum for each group of images
 
             query_template = "addition({}, {})."
             tensor_indices = ', '.join("tensor(images, {})".format(i) for i in range(self.num_digits))
             query = parse_program(query_template.format(tensor_indices, target))[0].term
+
             tensor_sources = {"images": images}
 
             return tensor_sources, query, torch.tensor([1.0])
         else:
             # Validation phase
+            # Group of queries (one query for each potential sum) for each group of images
 
             queries = [parse_program("addition({}, {}).".format(
             ', '.join("tensor(images, {})".format(i) for i in range(self.num_digits)), z))[0].term
