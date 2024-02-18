@@ -6,3 +6,7 @@
 /data/
 # logs of neural net
 /lightning_logs/
+# experiments logs
+*.log
+# experiments result plots
+*.png

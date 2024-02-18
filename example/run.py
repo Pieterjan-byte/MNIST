@@ -2,6 +2,11 @@ from nesy.model import NeSyModel, MNISTEncoder
 from dataset import AdditionTask
 from nesy.logic import ForwardChaining
 from nesy.semantics import SumProductSemiring, LukasieviczTNorm, GodelTNorm, ProductTNorm
+import time
+import logging
+
+# Set up logging
+#logging.basicConfig(filename='digitsscale_5.log', level=logging.INFO)
 
 import torch
 import pytorch_lightning as pl
@@ -11,6 +16,8 @@ n_classes = 2
 
 # Define the number of single digits number we are summing, 1 < n_addition < 10
 n_addition = 2
+
+#start_time = time.time()
 
 task_train = AdditionTask(n=n_addition, n_classes=n_classes)
 task_test = AdditionTask(n=n_addition, n_classes=n_classes, train=False)
@@ -30,9 +37,14 @@ n_epochs = 2
 train_batch_size = 2
 
 # Define the batch size for validation
-val_batch_size = 32
+val_batch_size = 64
 
 trainer = pl.Trainer(max_epochs=n_epochs)
 trainer.fit(model=model,
             train_dataloaders=task_train.dataloader(batch_size=train_batch_size),
             val_dataloaders=task_test.dataloader(batch_size=val_batch_size))
+
+#end_time = time.time()
+#elapsed_time = end_time - start_time
+
+#logging.info(f'The system took {elapsed_time:.4f} seconds to execute')
