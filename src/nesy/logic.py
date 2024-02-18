@@ -2,6 +2,11 @@ from nesy.term import Term, Clause, Fact, Variable
 from nesy.parser import parse_term, parse_program
 from abc import ABC, abstractmethod
 from collections import namedtuple
+import time
+import logging
+
+# Set up logging
+#logging.basicConfig(filename='logicscale_11.log', level=logging.INFO)
 
 class LogicEngine(ABC):
 
@@ -28,7 +33,7 @@ class ForwardChaining(LogicEngine):
         Returns:
             List[Term]: And-Or-Trees containing the proof for the queries
         """
-
+        #start_time = time.time()
         known_facts = set()
 
         for item in program:
@@ -47,6 +52,11 @@ class ForwardChaining(LogicEngine):
                     new_facts_added, and_or_trees = add_substitutions(clause, known_facts, queries, and_or_trees)
                     if new_facts_added:
                         inferred = True
+
+        #end_time = time.time()
+        #elapsed_time = end_time - start_time
+
+        #logging.info(f'The function took {elapsed_time:.4f} seconds to execute')
 
         return and_or_trees
 

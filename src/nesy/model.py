@@ -136,7 +136,6 @@ class NeSyModel(pl.LightningModule):
             float: The loss calculated for this Training step
         """
         tensor_sources, queries, y_true = I
-        print(batch_idx)
         y_preds = self.forward(tensor_sources, queries)
         loss = self.bce(y_preds.squeeze(), y_true.float().squeeze())
         self.log("train_loss", loss, on_epoch=True, prog_bar=True)
