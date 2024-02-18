@@ -11,15 +11,17 @@ class LogicEngine(ABC):
 
 
 class ForwardChaining(LogicEngine):
-    """Class that represents the reasoning of our program, returns And-Or-Tree, proof of the provided queries
+    """
+    Class that represents the reasoning of our program, returns And-Or-Tree, proof of the provided queries
 
     Args:
         LogicEngine (class): Abstract class with reason method
     """
 
     def reason(self, program: tuple[Clause], queries: list[Term]):
-        """Method to reason program and queries using forward chaining algorithm, 
-           extracting new clauses form existing program and queries
+        """
+        Method to reason program and queries using forward chaining algorithm,
+        extracting new clauses form existing program and queries
 
         Args:
             program (tuple[Clause]): Logic program to specify the addition rules

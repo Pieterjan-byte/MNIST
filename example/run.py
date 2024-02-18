@@ -1,4 +1,4 @@
-from nesy.model import NeSyModel, MNISTEncoder, CNN
+from nesy.model import NeSyModel, MNISTEncoder
 from dataset import AdditionTask
 from nesy.logic import ForwardChaining
 from nesy.semantics import SumProductSemiring, LukasieviczTNorm, GodelTNorm, ProductTNorm
@@ -6,8 +6,11 @@ from nesy.semantics import SumProductSemiring, LukasieviczTNorm, GodelTNorm, Pro
 import torch
 import pytorch_lightning as pl
 
+# Define the number of classes of possible digits(n_classes = 2 means only add images representing 0s and 1s), 1 < n_classes < 11
 n_classes = 2
-n_addition = 3
+
+# Define the number of single digits number we are summing, 1 < n_addition < 10
+n_addition = 2
 
 task_train = AdditionTask(n=n_addition, n_classes=n_classes)
 task_test = AdditionTask(n=n_addition, n_classes=n_classes, train=False)
@@ -20,7 +23,16 @@ model = NeSyModel(program=task_train.program,
                 label_semantics=GodelTNorm(),
                 n_digits = task_train.num_digits)
 
-trainer = pl.Trainer(max_epochs=1)
+# Define the number of epochs we use to train the neural network
+n_epochs = 2
+
+# Define the batch size for training
+train_batch_size = 2
+
+# Define the batch size for validation
+val_batch_size = 32
+
+trainer = pl.Trainer(max_epochs=n_epochs)
 trainer.fit(model=model,
-            train_dataloaders=task_train.dataloader(batch_size=2),
-            val_dataloaders=task_test.dataloader(batch_size=64))
+            train_dataloaders=task_train.dataloader(batch_size=train_batch_size),
+            val_dataloaders=task_test.dataloader(batch_size=val_batch_size))
