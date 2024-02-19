@@ -8,5 +8,5 @@
 /lightning_logs/
 # experiments logs
 *.log
-# experiments result plots
+# experiment result plots
 *.png
