@@ -4,7 +4,7 @@ import time
 import logging
 
 # Set up logging
-#logging.basicConfig(filename='logicscale_11.log', level=logging.INFO)
+#logging.basicConfig(filename='add_queryscale_0.log', level=logging.INFO)
 
 class LogicEngine(ABC):
 
@@ -59,7 +59,7 @@ class ForwardChaining(LogicEngine):
         #end_time = time.time()
         #elapsed_time = end_time - start_time
 
-        #logging.info(f'The function took {elapsed_time:.4f} seconds to execute')
+        #logging.info(f'The function took {len(queries):.4f} seconds to execute')
 
         return and_or_trees
 
