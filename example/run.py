@@ -12,7 +12,7 @@ import torch
 import pytorch_lightning as pl
 
 # Define the number of classes of possible digits(n_classes = 2 means only add images representing 0s and 1s), 1 < n_classes < 11
-n_classes = 2
+n_classes = 5
 
 # Define the number of single digits number we are summing, 1 < n_addition < 10
 n_addition = 2
@@ -27,11 +27,11 @@ neural_predicates = torch.nn.ModuleDict({"digit": MNISTEncoder(task_train.n_clas
 model = NeSyModel(program=task_train.program,
                 logic_engine=ForwardChaining(),
                 neural_predicates=neural_predicates,
-                label_semantics=GodelTNorm(),
+                label_semantics=SumProductSemiring(),
                 n_digits = task_train.num_digits)
 
 # Define the number of epochs we use to train the neural network
-n_epochs = 2
+n_epochs = 5
 
 # Define the batch size for training
 train_batch_size = 2
