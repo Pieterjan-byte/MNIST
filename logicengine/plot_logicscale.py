@@ -25,7 +25,7 @@ def plot_logicscale_total():
     x_values = list(range(len(y_values)))
 
     # Plotting the data
-    plt.plot(x_values, y_values, linestyle='-')
+    plt.plot(x_values, y_values, linestyle='-', label="ForwardChaining")
 
     # Adding labels and title
     plt.xlabel('Number of classes')
@@ -35,6 +35,7 @@ def plot_logicscale_total():
     #plt.xticks(range(len(y_values)))
 
     plt.grid(True)
+    plt.legend()
 
     # Display the plot
     plt.show()

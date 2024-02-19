@@ -14,7 +14,7 @@ import pytorch_lightning as pl
 #start_time = time.time()
 
 n_classes = 2
-n_addition = 2
+n_addition = 5
 
 task_train = AdditionTask(n=n_addition, n_classes=n_classes)
 task_test = AdditionTask(n=n_addition, n_classes=n_classes, train=False)

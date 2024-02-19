@@ -6,7 +6,7 @@ import time
 import logging
 
 # Set up logging
-#logging.basicConfig(filename='logicscale_11.log', level=logging.INFO)
+#logging.basicConfig(filename='add_queryscale_0.log', level=logging.INFO)
 
 class LogicEngine(ABC):
 
@@ -56,7 +56,7 @@ class ForwardChaining(LogicEngine):
         #end_time = time.time()
         #elapsed_time = end_time - start_time
 
-        #logging.info(f'The function took {elapsed_time:.4f} seconds to execute')
+        #logging.info(f'The function took {len(queries):.4f} seconds to execute')
 
         return and_or_trees
 
@@ -96,6 +96,8 @@ def add_substitutions(clause, known_facts, queries, and_or_trees):
                     if valid_substitution:
                         new_substitutions.append(new_substitution)
         complete_substitutions = new_substitutions
+
+    #logging.info(f'The function took {len(complete_substitutions):.4f} seconds to execute')
 
     # Filter out incomplete substitutions
     complete_substitutions = [sub for sub in complete_substitutions if is_complete_substitution(body, sub)]
