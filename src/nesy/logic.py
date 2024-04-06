@@ -4,7 +4,7 @@ import time
 import logging
 
 # Set up logging
-logging.basicConfig(filename='cache_scale_44.log', level=logging.INFO)
+logging.basicConfig(filename='t_double_cache.log', level=logging.INFO)
 
 class LogicEngine(ABC):
 
@@ -22,6 +22,8 @@ class ForwardChaining(LogicEngine):
     """
     def __init__(self):
         self.substitutions = {}
+        self.trees = {}
+        self.known_facts = None
 
     def reason(self, program: tuple[Clause], queries: list[Term], single_query):
         """
@@ -45,25 +47,55 @@ class ForwardChaining(LogicEngine):
             if isinstance(item, Fact):
                 known_facts.add(item.term)
 
+        # if self.known_facts:
+        #     known_facts = self.known_facts
+        # else:
+        #     for item in program:
+        #         if isinstance(item, Fact):
+        #             known_facts.add(item.term)
+
+        #     self.known_facts = known_facts
+
         # Initialize And-Or trees for each query
         and_or_trees = [None] * len(queries)
+        query_check = [False] * len(queries)
+
+        # Check for cached trees
+        query_not_cached = False
+        for i, query in enumerate(queries):
+            if self.trees.get(query):
+                and_or_trees[i] = self.trees[query]
+                query_check[i] = True
+            else:
+                query_not_cached = True
 
         # Main loop for forward chaining, it continues until no new facts can be inferred
-        inferred = True
-        while inferred:
-            inferred = False
+        if query_not_cached:
             for clause in program:
                 if not isinstance(clause, Fact):
                     # Attempt to add new facts based on the current clause and updated And-Or trees
                     new_facts_added, and_or_trees = self.add_substitutions(clause, known_facts, queries, and_or_trees, single_query)
-                    if new_facts_added:
-                        inferred = True
+                    print(new_facts_added)
+
+        # Cache new trees
+        if query_not_cached:
+            for i, query in enumerate(queries):
+                if query_check[i] == False:
+                    self.trees[query] = and_or_trees[i]
 
         end_time = time.time()
         elapsed_time = end_time - start_time
 
         logging.info(f'The function took {elapsed_time:.4f} seconds to execute')
+
+        # logging.info(queries)
+        # logging.info("\n")
+        # logging.info(and_or_trees)
+        # logging.info("\n")
+        # logging.info("------------------------------")
+        # logging.info("\n")
         
+
         return and_or_trees
 
 

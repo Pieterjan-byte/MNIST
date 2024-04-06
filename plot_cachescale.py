@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 
 def plot_logicscale_step():
     # Read the log file and extract relevant information
-    with open('cache_scale_10.log', 'r') as file:
+    with open('t_double_cache.log', 'r') as file:
         lines = file.readlines()
 
     # Extracting elapsed times from log entries
@@ -42,5 +42,5 @@ def plot_logicscale_total():
     # Display the plot
     plt.show()
 
-#plot_logicscale_step()
-plot_logicscale_total()
+plot_logicscale_step()
+# plot_logicscale_total()

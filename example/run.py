@@ -12,7 +12,7 @@ import torch
 import pytorch_lightning as pl
 
 # Define the number of classes of possible digits(n_classes = 2 means only add images representing 0s and 1s), 1 < n_classes < 11
-n_classes = 2
+n_classes = 6
 
 # Define the number of single digits number we are summing, 1 < n_addition < 10
 n_addition = 2
@@ -34,7 +34,7 @@ model = NeSyModel(program=task_train.program,
                 n_digits = task_train.num_digits)
 
 # Define the number of epochs we use to train the neural network
-n_epochs = 5
+n_epochs = 1
 
 # Define the batch size for training
 train_batch_size = 2
