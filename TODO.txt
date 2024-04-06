@@ -1,0 +1,7 @@
+PART 2: FINAL STAGE
+
+- Cache And-Or-Trees
+    - What cache options do we have? Hashing?
+- extend to multidigit addition
+- check for parallellization opportunities
+- 
