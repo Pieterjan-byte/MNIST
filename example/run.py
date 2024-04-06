@@ -1,5 +1,5 @@
 from nesy.model import NeSyModel, MNISTEncoder
-from dataset import AdditionTask
+from dataset import AdditionTask, NoisyAdditionTask
 from nesy.logic import ForwardChaining
 from nesy.semantics import SumProductSemiring, LukasieviczTNorm, GodelTNorm, ProductTNorm
 import time
@@ -20,6 +20,9 @@ n_addition = 2
 #start_time = time.time()
 
 task_train = AdditionTask(n=n_addition, n_classes=n_classes)
+# To add noise to input data or labels use this addition task
+#task_train = NoisyAdditionTask(n=n_addition, n_classes=n_classes, apply_noise_to_data=True, apply_noise_to_labels=True, noise_level=0.1)
+
 task_test = AdditionTask(n=n_addition, n_classes=n_classes, train=False)
 
 neural_predicates = torch.nn.ModuleDict({"digit": MNISTEncoder(task_train.n_classes)})
@@ -27,11 +30,11 @@ neural_predicates = torch.nn.ModuleDict({"digit": MNISTEncoder(task_train.n_clas
 model = NeSyModel(program=task_train.program,
                 logic_engine=ForwardChaining(),
                 neural_predicates=neural_predicates,
-                label_semantics=GodelTNorm(),
+                label_semantics=ProductTNorm(),
                 n_digits = task_train.num_digits)
 
 # Define the number of epochs we use to train the neural network
-n_epochs = 2
+n_epochs = 5
 
 # Define the batch size for training
 train_batch_size = 2

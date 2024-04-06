@@ -30,7 +30,9 @@ class SumProductSemiring(Semantics):
         return math.prod(args)
 
     def disjunction(self, *args):
-        return sum(args)
+        result = sum(args)
+        result = torch.clamp(result, min=0, max=1)
+        return result
 
     def negation(self, a):
         return 1 - a
