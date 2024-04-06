@@ -4,7 +4,7 @@ import time
 import logging
 
 # Set up logging
-#logging.basicConfig(filename='add_queryscale_0.log', level=logging.INFO)
+logging.basicConfig(filename='cache_scale_44.log', level=logging.INFO)
 
 class LogicEngine(ABC):
 
@@ -20,8 +20,10 @@ class ForwardChaining(LogicEngine):
     Args:
         LogicEngine (class): Abstract class with reason method
     """
+    def __init__(self):
+        self.substitutions = {}
 
-    def reason(self, program: tuple[Clause], queries: list[Term]):
+    def reason(self, program: tuple[Clause], queries: list[Term], single_query):
         """
         Uses the forward chaining algorithm to reason over the given program and queries
         This method iteratively applies clauses to known facts to infer new facts until no more inferences can be made
@@ -30,12 +32,13 @@ class ForwardChaining(LogicEngine):
         Args:
             program (tuple[Clause]): Set of clauses defining the logical program
             queries (list[Term]): queries to be answered
+            single_query (Bool): indicates training and validation phase
 
         Returns:
             List[Term]: And-Or trees representing proofs for each query
 
         """
-        #start_time = time.time()
+        start_time = time.time()
         known_facts = set() # Stores the known facts that are derived from the program
 
         for item in program:
@@ -52,64 +55,79 @@ class ForwardChaining(LogicEngine):
             for clause in program:
                 if not isinstance(clause, Fact):
                     # Attempt to add new facts based on the current clause and updated And-Or trees
-                    new_facts_added, and_or_trees = add_substitutions(clause, known_facts, queries, and_or_trees)
+                    new_facts_added, and_or_trees = self.add_substitutions(clause, known_facts, queries, and_or_trees, single_query)
                     if new_facts_added:
                         inferred = True
 
-        #end_time = time.time()
-        #elapsed_time = end_time - start_time
+        end_time = time.time()
+        elapsed_time = end_time - start_time
 
-        #logging.info(f'The function took {len(queries):.4f} seconds to execute')
-
+        logging.info(f'The function took {elapsed_time:.4f} seconds to execute')
+        
         return and_or_trees
 
 
-# Calculates possible substitutions for a clause against known facts and updates And-Or trees
-def add_substitutions(clause, known_facts, queries, and_or_trees):
-    """
-    Attempts to match the body of a clause with known facts to infer new facts (head of the clause) and
-    updates the And-Or trees(proofs for the queries) accordingly
+    # Calculates possible substitutions for a clause against known facts and updates And-Or trees
+    def add_substitutions(self, clause, known_facts, queries, and_or_trees, single_query):
+        """
+        Attempts to match the body of a clause with known facts to infer new facts (head of the clause) and
+        updates the And-Or trees(proofs for the queries) accordingly
 
-    Args:
-        clause (Clause): Current clause being processed
-        known_facts (Set[Term]): Set of known facts
-        queries (List[Term]): List of queries being answered
-        and_or_trees (List[Term]): Current state of the And-Or trees for each query
+        Args:
+            clause (Clause): Current clause being processed
+            known_facts (Set[Term]): Set of known facts
+            queries (List[Term]): List of queries being answered
+            and_or_trees (List[Term]): Current state of the And-Or trees for each query
 
-    Returns:
-        Bool, List[Term]: Boolean indicating if new facts were added and the updated And-Or trees
-    """
-    new_facts_added = False # Indicates if new facts were inferred
+        Returns:
+            Bool, List[Term]: Boolean indicating if new facts were added and the updated And-Or trees
+        """
+        new_facts_added = False # Indicates if new facts were inferred
 
-    # Generate all possible substitutions(mappings) for the clause body based on known facts
-    complete_substitutions = generate_substitutions(clause.body, known_facts)
+        # caching of the substitutions
+        if single_query:
+            if self.substitutions.get("training") is not None:
+                complete_substitutions = self.substitutions["training"]
+            else:
+                # Generate all possible substitutions(mappings) for the clause body based on known facts
+                complete_substitutions = generate_substitutions(clause.body, known_facts)
+                self.substitutions["training"] = complete_substitutions
+        else:
+            if self.substitutions.get("validation") is not None:
+                complete_substitutions = self.substitutions["validation"]
+            else:
+                # Generate all possible substitutions(mappings) for the clause body based on known facts
+                complete_substitutions = generate_substitutions(clause.body, known_facts)
+                self.substitutions["validation"] = complete_substitutions
 
-    # Apply complete substitutions to infer new facts and update And-Or trees
-    for substitution in complete_substitutions:
+        #complete_substitutions = generate_substitutions(clause.body, known_facts)
 
-        # Apply the substitution to the clause's head
-        substituted_head = substitute(clause.head, substitution)
+        # Apply complete substitutions to infer new facts and update And-Or trees
+        for substitution in complete_substitutions:
 
-        # If the inferred fact is not already known, add it to the known facts + mark that new facts were inferred
-        if substituted_head not in known_facts:
-            known_facts.add(substituted_head)
-            new_facts_added = True
+            # Apply the substitution to the clause's head
+            substituted_head = substitute(clause.head, substitution)
 
-        # Check if the newly added fact is relevant to any of the queries
-        for i, query in enumerate(queries):
-            if substituted_head == query:
-                # Update the And-Or tree for the query with the new fact
-                and_node = construct_and_or_tree_node(clause, substitution)
+            # If the inferred fact is not already known, add it to the known facts + mark that new facts were inferred
+            if substituted_head not in known_facts:
+                known_facts.add(substituted_head)
+                new_facts_added = True
 
-                # Initialize the And-Or tree if it's the first fact for this query
-                if and_or_trees[i] is None:
-                    and_or_trees[i] = Or([and_node])
+            # Check if the newly added fact is relevant to any of the queries
+            for i, query in enumerate(queries):
+                if substituted_head == query:
+                    # Update the And-Or tree for the query with the new fact
+                    and_node = construct_and_or_tree_node(clause, substitution)
 
-                # Otherwise, add new node to the existing tree, while avoiding duplicates
-                elif not any(and_node == existing_node for existing_node in and_or_trees[i].children):
-                    and_or_trees[i].children.append(and_node)
+                    # Initialize the And-Or tree if it's the first fact for this query
+                    if and_or_trees[i] is None:
+                        and_or_trees[i] = Or([and_node])
 
-    return new_facts_added, and_or_trees
+                    # Otherwise, add new node to the existing tree, while avoiding duplicates
+                    elif not any(and_node == existing_node for existing_node in and_or_trees[i].children):
+                        and_or_trees[i].children.append(and_node)
+
+        return new_facts_added, and_or_trees
 
 def generate_substitutions(body, known_facts):
     """
