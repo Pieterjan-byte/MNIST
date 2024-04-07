@@ -40,21 +40,17 @@ class ForwardChaining(LogicEngine):
             List[Term]: And-Or trees representing proofs for each query
 
         """
-        start_time = time.time()
+        # start_time = time.time()
         known_facts = set() # Stores the known facts that are derived from the program
 
-        for item in program:
-            if isinstance(item, Fact):
-                known_facts.add(item.term)
+        if self.known_facts:
+            known_facts = self.known_facts
+        else:
+            for item in program:
+                if isinstance(item, Fact):
+                    known_facts.add(item.term)
 
-        # if self.known_facts:
-        #     known_facts = self.known_facts
-        # else:
-        #     for item in program:
-        #         if isinstance(item, Fact):
-        #             known_facts.add(item.term)
-
-        #     self.known_facts = known_facts
+            self.known_facts = known_facts
 
         # Initialize And-Or trees for each query
         and_or_trees = [None] * len(queries)
@@ -75,7 +71,6 @@ class ForwardChaining(LogicEngine):
                 if not isinstance(clause, Fact):
                     # Attempt to add new facts based on the current clause and updated And-Or trees
                     new_facts_added, and_or_trees = self.add_substitutions(clause, known_facts, queries, and_or_trees, single_query)
-                    print(new_facts_added)
 
         # Cache new trees
         if query_not_cached:
@@ -83,18 +78,17 @@ class ForwardChaining(LogicEngine):
                 if query_check[i] == False:
                     self.trees[query] = and_or_trees[i]
 
-        end_time = time.time()
-        elapsed_time = end_time - start_time
+        # end_time = time.time()
+        # elapsed_time = end_time - start_time
 
-        logging.info(f'The function took {elapsed_time:.4f} seconds to execute')
+        # logging.info(f'The function took {elapsed_time:.4f} seconds to execute')
 
-        # logging.info(queries)
+        # logging.info(known_facts)
         # logging.info("\n")
-        # logging.info(and_or_trees)
+        # logging.info(program)
         # logging.info("\n")
         # logging.info("------------------------------")
         # logging.info("\n")
-        
 
         return and_or_trees
 
