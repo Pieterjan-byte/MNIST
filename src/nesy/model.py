@@ -110,6 +110,7 @@ class NeSyModel(pl.LightningModule):
         """
         tensor_sources, queries, y_true = I
         y_preds = self.forward(tensor_sources, queries)
+        #print("Y preds: \n\n ", y_preds)
         accuracy = accuracy_score(y_true, y_preds.argmax(dim=-1))
         self.log("test_acc", accuracy, on_step=True, on_epoch=True, prog_bar=True)
         return accuracy

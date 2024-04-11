@@ -94,7 +94,7 @@ class AdditionTask(Dataset):
         neural_predicates = "\n".join(f"nn(digit, tensor(images, {x}), {y}) :: digit(tensor(images, {x}),{y})." for x, y in product(range(self.num_digits), range(self.n_classes)))
 
         program_string = addition_clause + addition_facts + "\n" + neural_predicates
-        print(program_string)
+        #print(program_string)
         return parse_program(program_string)
 
     def __getitem__(self, index):
@@ -279,7 +279,7 @@ class MultiAdditionTask(Dataset):
             str: The constructed logic program as a string.
         """
         # Define the addition clause: of the form: addition(X,Y,Z) :- digit(X, N1), digit(Y, N2), add(N1, N2, Sum)
-        addition_clause = "addition(X1,X2,X3,X4,Sum) :- digit(X1,N1), digit(X2,N2), digit(X3,N3), digit(X4,N4), combine(N1, N2, C1), combine(N3, N4, C2), add(C1,C2,Sum).\n"
+        addition_clause = "addition(X1,X2,X3,X4,Sum) :- digit(X1,N1), digit(X2,N2), digit(X3,N3), digit(X4,N4), add(N1,N2,N3,N4,Sum).\n"
 
         # Single combination logic for forming multi-digit numbers
         # combination_clause = "combination(X1,X2,Combined) :- digit(X1,N1), digit(X2,N2), combine(N1,N2,Combined).\n"
@@ -287,34 +287,31 @@ class MultiAdditionTask(Dataset):
         # Set to hold unique addition facts
         addition_facts_set = set()
 
-        # Generate add facts for all possible sums including combined digits
-        for c1 in range(self.n_classes):
-            for c2 in range(self.n_classes):
-                combined1 = c1 * 10 + c2
-                for c3 in range(self.n_classes):
-                    for c4 in range(self.n_classes):
-                        combined2 = c3 * 10 + c4
-                        # Include single digit with single digit, single with combined, and combined with combined
-                        addition_facts_set.add(f"add({c1}, {c2}, {c1+c2}).")
-                        addition_facts_set.add(f"add({c1}, {combined2}, {c1+combined2}).")
-                        addition_facts_set.add(f"add({combined1}, {c4}, {combined1+c4}).")
-                        addition_facts_set.add(f"add({combined1}, {combined2}, {combined1+combined2}).")
+        # Generate add facts for all possible sums including combined digits directly
+        for n1 in range(self.n_classes):
+            for n2 in range(self.n_classes):
+                for n3 in range(self.n_classes):
+                    for n4 in range(self.n_classes):
+                        sum_value = n1 * 10 + n2 + n3 * 10 + n4
+                        # Store unique addition facts in the set
+                        addition_facts_set.add(f"add({n1}, {n2}, {n3}, {n4}, {sum_value}).")
+
 
         # Convert the set back to a list for sorting or further manipulation
         addition_facts = list(addition_facts_set)
 
         # Defining combination facts for all pairs of single digits
-        combination_facts = []
-        for n1 in range(self.n_classes):
-            for n2 in range(self.n_classes):
-                combined = n1 * 10 + n2  # Forming a two-digit number
-                combination_facts.append(f"combine({n1}, {n2}, {combined}).")
+        #combination_facts = []
+        #for n1 in range(self.n_classes):
+            #for n2 in range(self.n_classes):
+                #combined = n1 * 10 + n2  # Forming a two-digit number
+                #combination_facts.append(f"combine({n1}, {n2}, {combined}).")
 
         # Construction of the neural predicates (weighted facts) of the form: nn(digit, tensor(images, 0), 0) :: digit(tensor(images, 0),0)
         neural_predicates = "\n".join(f"nn(digit, tensor(images, {x}), {y}) :: digit(tensor(images, {x}),{y})." for x, y in product(range(self.n_multi), range(self.n_classes)))
 
-        program_string = addition_clause  + "\n".join(addition_facts) + "\n"  + "\n".join(combination_facts) + "\n" + neural_predicates
-        #print(program_string)
+        program_string = addition_clause  + "\n".join(addition_facts) + "\n" + neural_predicates
+        print(program_string)
         return parse_program(program_string)
 
     def generate_valid_sums(self, n_classes):
@@ -335,9 +332,10 @@ class MultiAdditionTask(Dataset):
         images = self.original_images[index * self.n_multi: (index + 1) * self.n_multi]
         targets = self.original_targets[index * self.n_multi: (index + 1) * self.n_multi]
 
-        combined_1 = targets[0]* 10 + targets[1] if targets[0] > 0 else targets[1]
-        combined_2 = targets[2] * 10 + targets[3] if targets[2] > 0 else targets[3]
+        combined_1 = targets[0]* 10 + targets[1]
+        combined_2 = targets[2] * 10 + targets[3]
         target = int(combined_1 + combined_2)
+        #print(target)
 
         # Construction of the queries
         # Queries are of the form: addition(tensor(images, 0), tensor(images, 1), Sum)
@@ -364,7 +362,7 @@ class MultiAdditionTask(Dataset):
             ', '.join("tensor(images, {})".format(i) for i in range(self.n_multi)), z))[0].term
             for z in valid_sums]
 
-            #print(queries)
+            print(queries)
 
             return tensor_sources, queries, target
 
