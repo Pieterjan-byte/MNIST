@@ -43,6 +43,7 @@ class Evaluator():
             torch.Tensor: A tensor containing the probabilities for the queries
         """
         results = []
+        #print("And or trees:", and_or_trees)
         for and_or_tree in and_or_trees: # Iterate over the different and-or-trees, each one corresponding to a query in a query group
             result = self.evaluate_tree(and_or_tree, tensor_sources, i)[0]
             results.append(result)

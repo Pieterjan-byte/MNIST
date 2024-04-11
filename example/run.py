@@ -1,5 +1,5 @@
 from nesy.model import NeSyModel, MNISTEncoder
-from dataset import AdditionTask, NoisyAdditionTask
+from dataset import AdditionTask, NoisyAdditionTask, MultiAdditionTask
 from nesy.logic import ForwardChaining
 from nesy.semantics import SumProductSemiring, LukasieviczTNorm, GodelTNorm, ProductTNorm
 import time
@@ -17,13 +17,21 @@ n_classes = 2
 # Define the number of single digits number we are summing, 1 < n_addition < 10
 n_addition = 2
 
+n_multi = 2
+
 #start_time = time.time()
 
-task_train = AdditionTask(n=n_addition, n_classes=n_classes)
+#task_train = AdditionTask(n=n_addition, n_classes=n_classes)
 # To add noise to input data or labels use this addition task
 #task_train = NoisyAdditionTask(n=n_addition, n_classes=n_classes, apply_noise_to_data=True, apply_noise_to_labels=True, noise_level=0.1)
 
-task_test = AdditionTask(n=n_addition, n_classes=n_classes, train=False)
+#task_test = AdditionTask(n=n_addition, n_classes=n_classes, train=False)
+
+# Define your parameters such as max_digits
+max_digits = 2  # Example for 2-digit addition
+
+task_train = MultiAdditionTask(n=n_multi, n_classes=n_classes, train=True)
+task_test = MultiAdditionTask(n=n_multi, n_classes=n_classes, train=False)
 
 neural_predicates = torch.nn.ModuleDict({"digit": MNISTEncoder(task_train.n_classes)})
 
@@ -34,13 +42,13 @@ model = NeSyModel(program=task_train.program,
                 n_digits = task_train.num_digits)
 
 # Define the number of epochs we use to train the neural network
-n_epochs = 5
+n_epochs = 1
 
 # Define the batch size for training
-train_batch_size = 2
+train_batch_size = 4
 
 # Define the batch size for validation
-val_batch_size = 64
+val_batch_size = 8
 
 trainer = pl.Trainer(max_epochs=n_epochs)
 trainer.fit(model=model,

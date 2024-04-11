@@ -34,3 +34,31 @@ generated.
 From this experiment we can conclude that the scaling of the logic engine is suboptimal in the current state and there is room for potential speed ups.
 Mainly looking at the amount of operations that are repeated. The forward chaining algorithm is always executed from scratch, inferring numerous facts with no 
 memory. This calls for the use of some sort of caching to speed up the logic engine and avoid duplicate work.
+
+
+
+[addition(tensor(images,0),tensor(images,1),tensor(images,2),tensor(images,3),0),
+addition(tensor(images,0),tensor(images,1),tensor(images,2),tensor(images,3),1),
+addition(tensor(images,0),tensor(images,1),tensor(images,2),tensor(images,3),2),
+addition(tensor(images,0),tensor(images,1),tensor(images,2),tensor(images,3),3),
+addition(tensor(images,0),tensor(images,1),tensor(images,2),tensor(images,3),4),
+addition(tensor(images,0),tensor(images,1),tensor(images,2),tensor(images,3),10),
+addition(tensor(images,0),tensor(images,1),tensor(images,2),tensor(images,3),11),
+addition(tensor(images,0),tensor(images,1),tensor(images,2),tensor(images,3),12),
+addition(tensor(images,0),tensor(images,1),tensor(images,2),tensor(images,3),13),
+addition(tensor(images,0),tensor(images,1),tensor(images,2),tensor(images,3),14),
+addition(tensor(images,0),tensor(images,1),tensor(images,2),tensor(images,3),20),
+addition(tensor(images,0),tensor(images,1),tensor(images,2),tensor(images,3),21),
+addition(tensor(images,0),tensor(images,1),tensor(images,2),tensor(images,3),22),
+addition(tensor(images,0),tensor(images,1),tensor(images,2),tensor(images,3),23),
+addition(tensor(images,0),tensor(images,1),tensor(images,2),tensor(images,3),24),
+addition(tensor(images,0),tensor(images,1),tensor(images,2),tensor(images,3),30),
+addition(tensor(images,0),tensor(images,1),tensor(images,2),tensor(images,3),31),
+addition(tensor(images,0),tensor(images,1),tensor(images,2),tensor(images,3),32),
+addition(tensor(images,0),tensor(images,1),tensor(images,2),tensor(images,3),33),
+addition(tensor(images,0),tensor(images,1),tensor(images,2),tensor(images,3),34),
+addition(tensor(images,0),tensor(images,1),tensor(images,2),tensor(images,3),40),
+addition(tensor(images,0),tensor(images,1),tensor(images,2),tensor(images,3),41),
+addition(tensor(images,0),tensor(images,1),tensor(images,2),tensor(images,3),42),
+addition(tensor(images,0),tensor(images,1),tensor(images,2),tensor(images,3),43),
+addition(tensor(images,0),tensor(images,1),tensor(images,2),tensor(images,3),44)]

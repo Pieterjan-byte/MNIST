@@ -35,12 +35,15 @@ class ForwardChaining(LogicEngine):
             List[Term]: And-Or trees representing proofs for each query
 
         """
+        #print("Reason input: \n", program,"\n\n" , queries)
         #start_time = time.time()
         known_facts = set() # Stores the known facts that are derived from the program
 
         for item in program:
             if isinstance(item, Fact):
                 known_facts.add(item.term)
+
+        #print("Known facts: \n", known_facts,"\n\n")
 
         # Initialize And-Or trees for each query
         and_or_trees = [None] * len(queries)
@@ -84,11 +87,15 @@ def add_substitutions(clause, known_facts, queries, and_or_trees):
     # Generate all possible substitutions(mappings) for the clause body based on known facts
     complete_substitutions = generate_substitutions(clause.body, known_facts)
 
+    #print("Complete substitutions: \n", complete_substitutions,"\n\n")
+
     # Apply complete substitutions to infer new facts and update And-Or trees
     for substitution in complete_substitutions:
 
         # Apply the substitution to the clause's head
         substituted_head = substitute(clause.head, substitution)
+
+        #print("Substituted head: \n", substituted_head,"\n\n")
 
         # If the inferred fact is not already known, add it to the known facts + mark that new facts were inferred
         if substituted_head not in known_facts:
@@ -97,9 +104,12 @@ def add_substitutions(clause, known_facts, queries, and_or_trees):
 
         # Check if the newly added fact is relevant to any of the queries
         for i, query in enumerate(queries):
+            #print("Query: \n\n", query)
             if substituted_head == query:
+
                 # Update the And-Or tree for the query with the new fact
                 and_node = construct_and_or_tree_node(clause, substitution)
+                #print("Going to add and or tree node!! \n\n", and_node)
 
                 # Initialize the And-Or tree if it's the first fact for this query
                 if and_or_trees[i] is None:
@@ -242,7 +252,7 @@ def construct_and_or_tree_node(clause, substitution):
         And/Or: A node representing an AND operation in the And-Or tree
     """
     # Filter out 'add' predicate leaves, so to only have neural predicates as leaves
-    children = [Leaf(substitute(term, substitution))for term in clause.body if term.functor != 'add']
+    children = [Leaf(substitute(term, substitution))for term in clause.body if term.functor not in ['add', 'combine']]
     return And(children)
 
 
