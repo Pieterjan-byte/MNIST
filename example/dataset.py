@@ -126,7 +126,7 @@ class AdditionTask(Dataset):
 
             tensor_sources = {"images": images}
 
-            print(queries)
+            #print(queries)
 
             return tensor_sources, queries, target
 
@@ -311,7 +311,7 @@ class MultiAdditionTask(Dataset):
         neural_predicates = "\n".join(f"nn(digit, tensor(images, {x}), {y}) :: digit(tensor(images, {x}),{y})." for x, y in product(range(self.n_multi), range(self.n_classes)))
 
         program_string = addition_clause  + "\n".join(addition_facts) + "\n" + neural_predicates
-        print(program_string)
+        #print(program_string)
         return parse_program(program_string)
 
     def generate_valid_sums(self, n_classes):
@@ -362,7 +362,7 @@ class MultiAdditionTask(Dataset):
             ', '.join("tensor(images, {})".format(i) for i in range(self.n_multi)), z))[0].term
             for z in valid_sums]
 
-            print(queries)
+            #print(queries)
 
             return tensor_sources, queries, target
 
