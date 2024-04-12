@@ -15,7 +15,13 @@ class MNISTEncoder(nn.Module):
         self.n = n
         super(MNISTEncoder, self).__init__()
         self.net = nn.Sequential(
-            nn.Linear(784, 30),
+            nn.Linear(784, 512),
+            nn.ReLU(),
+            nn.Linear(512, 256),
+            nn.ReLU(),
+            nn.Linear(256, 128),
+            nn.ReLU(),
+            nn.Linear(128, 30),
             nn.ReLU(),
             nn.Linear(30, n),
             nn.Softmax(-1))
@@ -65,14 +71,16 @@ class NeSyModel(pl.LightningModule):
 
         # Check if the queries are single or grouped
         if isinstance(queries[0], Term):
-            and_or_trees = self.logic_engine.reason(self.program, queries)
+            single_query = True
+            and_or_trees = self.logic_engine.reason(self.program, queries, single_query)
             results = self.evaluator.evaluate(tensor_sources, and_or_trees, i=0)
         else:
+            single_query = False
             results = []
             # i contains the index of the query group in queries, to know which images to work with
             i = 0
             for query_group in queries:
-                and_or_trees = self.logic_engine.reason(self.program, query_group)
+                and_or_trees = self.logic_engine.reason(self.program, query_group, single_query)
                 group_results = self.evaluator.evaluate(tensor_sources, and_or_trees, i)
                 group_results = group_results.unsqueeze(0) # Adjust shape for concatenation
                 results.append(group_results)
