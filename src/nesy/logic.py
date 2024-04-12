@@ -4,7 +4,7 @@ import time
 import logging
 
 # Set up logging
-logging.basicConfig(filename='t_double_cache.log', level=logging.INFO)
+logging.basicConfig(filename='check_check.log', level=logging.INFO)
 
 class LogicEngine(ABC):
 
@@ -86,9 +86,9 @@ class ForwardChaining(LogicEngine):
 
         # logging.info(f'The function took {elapsed_time:.4f} seconds to execute')
 
-        # logging.info(known_facts)
+        # logging.info(queries)
         # logging.info("\n")
-        # logging.info(program)
+        # logging.info(and_or_trees)
         # logging.info("\n")
         # logging.info("------------------------------")
         # logging.info("\n")

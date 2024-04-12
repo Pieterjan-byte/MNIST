@@ -9,6 +9,10 @@ from torch import nn
 from sklearn.metrics import accuracy_score
 from nesy.evaluator import Evaluator
 
+import logging
+
+# Set up logging
+logging.basicConfig(filename='output.log', level=logging.INFO)
 
 class MNISTEncoder(nn.Module):
     def __init__(self, n):
@@ -68,12 +72,20 @@ class NeSyModel(pl.LightningModule):
         Returns:
             torch.Tensor: Output tensor containing probabilities
         """
+        # Set up logging
+        logging.basicConfig(filename='output.log', level=logging.INFO)
 
         # Check if the queries are single or grouped
         if isinstance(queries[0], Term):
             single_query = True
             and_or_trees = self.logic_engine.reason(self.program, queries, single_query)
             results = self.evaluator.evaluate(tensor_sources, and_or_trees, i=0)
+            logging.info(queries)
+            logging.info("\n")
+            logging.info(and_or_trees)
+            logging.info("\n")
+            logging.info(results)
+            logging.info("\n")
         else:
             single_query = False
             results = []
@@ -99,10 +111,19 @@ class NeSyModel(pl.LightningModule):
         Returns:
             float: The computed loss for the training step.
         """
+        # Set up logging
+        logging.basicConfig(filename='output.log', level=logging.INFO)
         tensor_sources, queries, y_true = I
         y_preds = self.forward(tensor_sources, queries)
         loss = self.bce(y_preds.squeeze(), y_true.float().squeeze())
         self.log("train_loss", loss, on_epoch=True, prog_bar=True)
+
+        logging.info(y_true)
+        logging.info("\n")
+        logging.info(y_preds)
+        logging.info("\n")
+        logging.info("---------------------------------------")
+
         return loss
 
 
