@@ -2,55 +2,12 @@ from typing import List, Dict
 import torch
 import pytorch_lightning as pl
 
-import nesy.parser
 from nesy.semantics import Semantics
 from nesy.term import Clause, Term
 from nesy.logic import LogicEngine
 from torch import nn
 from sklearn.metrics import accuracy_score
 from nesy.evaluator import Evaluator
-import math
-
-class CNN(nn.Module):
-    def __init__(self, input_size, num_classes):
-        """
-        init convolution and activation layers
-        Args:
-            input_size: (1,28,28)
-            num_classes: 10
-        """
-        self.n = num_classes
-        super(CNN, self).__init__()
-
-        self.layer1 = nn.Sequential(
-            nn.Conv2d(input_size[0], 32, kernel_size=5),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2))
-
-        self.layer2 = nn.Sequential(
-            nn.Conv2d(32, 64, kernel_size=5),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2))
-
-        self.fc1 = nn.Linear(4 * 4 * 64, num_classes)
-
-
-    def forward(self, x):
-        """
-        forward function describes how input tensor is transformed to output tensor
-        Args:
-            x: (Nx1x28x28) tensor
-        """
-        #We flatten the tensor
-        original_shape = x.shape
-        n_dims = len(original_shape)
-        x = self.layer1(x)
-        x = self.layer2(x)
-        x = x.reshape(x.size(0), -1)
-        o = self.fc1(x)
-        #We restore the original shape
-        o = o.view(*original_shape[0:n_dims-3], self.n)
-        return o
 
 
 class MNISTEncoder(nn.Module):
@@ -58,7 +15,13 @@ class MNISTEncoder(nn.Module):
         self.n = n
         super(MNISTEncoder, self).__init__()
         self.net = nn.Sequential(
-            nn.Linear(784, 30),
+            nn.Linear(784, 512),
+            nn.ReLU(),
+            nn.Linear(512, 256),
+            nn.ReLU(),
+            nn.Linear(256, 128),
+            nn.ReLU(),
+            nn.Linear(128, 30),
             nn.ReLU(),
             nn.Linear(30, n),
             nn.Softmax(-1))
@@ -95,30 +58,31 @@ class NeSyModel(pl.LightningModule):
         self.n_digits = n_digits
 
     def forward(self, tensor_sources: Dict[str, torch.Tensor],  queries: List[Term] | List[List[Term]]):
-        # TODO: Note that you need to handle both the cases of single queries (List[Term]), like during training
-        #  or of grouped queries (List[List[Term]]), like during testing.
-        #  Check how the dataset provides such queries.
-        """Forward step of the Neural Network
+        """
+        Forward step of the Neural Network
 
         Args:
-            tensor_sources (Dict[str, torch.Tensor]): Dictionary containing the MNIST Images in the form of tensors
+            tensor_sources (Dict[str, torch.Tensor]): Dictionary containing the MNIST Images in the form of tensor data
             queries (list[Term]): queries asking for the probability which images sum up to a sum
 
         Returns:
-            torch.Tensor: Tensor containing probabilities
+            torch.Tensor: Output tensor containing probabilities
         """
 
         # Check if the queries are single or grouped
         if isinstance(queries[0], Term):
-            and_or_trees = self.logic_engine.reason(self.program, queries)
-            results = self.evaluator.evaluate(tensor_sources, and_or_trees, queries, i=0)
+            single_query = True
+            and_or_trees = self.logic_engine.reason(self.program, queries, single_query)
+            results = self.evaluator.evaluate(tensor_sources, and_or_trees, i=0)
         else:
+            single_query = False
             results = []
+            # i contains the index of the query group in queries, to know which images to work with
             i = 0
             for query_group in queries:
-                and_or_trees = self.logic_engine.reason(self.program, query_group)
-                group_results = self.evaluator.evaluate(tensor_sources, and_or_trees, query_group, i)
-                group_results = group_results.unsqueeze(0)
+                and_or_trees = self.logic_engine.reason(self.program, query_group, single_query)
+                group_results = self.evaluator.evaluate(tensor_sources, and_or_trees, i)
+                group_results = group_results.unsqueeze(0) # Adjust shape for concatenation
                 results.append(group_results)
                 i += 1
             results = torch.cat(results, dim=0)
@@ -126,17 +90,16 @@ class NeSyModel(pl.LightningModule):
         return results
 
     def training_step(self, I, batch_idx):
-        """Loss calculation during training step
+        """
+        Performs a single training step
 
         Args:
-            I (tensor_sources, queries, torch.tensor): Indexation on the AdditionTask class (getitem)
-            batch_idx (int): batch counter
+            I (tuple): Contains tensor sources, queries, and true labels for the batch.
 
         Returns:
-            float: The loss calculated for this Training step
+            float: The computed loss for the training step.
         """
         tensor_sources, queries, y_true = I
-        print(batch_idx)
         y_preds = self.forward(tensor_sources, queries)
         loss = self.bce(y_preds.squeeze(), y_true.float().squeeze())
         self.log("train_loss", loss, on_epoch=True, prog_bar=True)
@@ -144,14 +107,14 @@ class NeSyModel(pl.LightningModule):
 
 
     def validation_step(self, I, batch_idx):
-        """Accuracy calculation during validation step
+        """
+        Performs a single validation step
 
         Args:
-            I (tensor_sources, queries, torch.tensor): Indexation on the AdditionTask class (getitem)
-            batch_idx (int): batch counter
+            I (tuple): Contains tensor sources, queries, and true labels for the batch.
 
         Returns:
-            float: The accuracy calculated during the Validation step
+            float: The computed accuracy for the validation step.
         """
         tensor_sources, queries, y_true = I
         y_preds = self.forward(tensor_sources, queries)
