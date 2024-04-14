@@ -18,7 +18,7 @@ n_classes = 2
 n_addition = 2
 
 # Define the number of combined digits used for creating new numbers
-n_multi = 2
+n_multi = 3
 
 start_time = time.time()
 
@@ -31,8 +31,8 @@ start_time = time.time()
 # Define your parameters such as max_digits
 max_digits = 2  # Example for 2-digit addition
 
-task_train = MultiAdditionTask(n_addition=n_addition, n_classes=n_classes)
-task_test = MultiAdditionTask(n_addition=n_addition, n_classes=n_classes, train=False)
+task_train = MultiAdditionTask(n_addition=n_addition, n_classes=n_classes, n_multi = n_multi)
+task_test = MultiAdditionTask(n_addition=n_addition, n_classes=n_classes,  n_multi = n_multi, train=False)
 
 neural_predicates = torch.nn.ModuleDict({"digit": MNISTEncoder(task_train.n_classes)})
 
@@ -43,13 +43,13 @@ model = NeSyModel(program=task_train.program,
                 n_addition = task_train.n_addition)
 
 # Define the number of epochs we use to train the neural network
-n_epochs = 1
+n_epochs = 3
 
 # Define the batch size for training
 train_batch_size = 2
 
 # Define the batch size for validation
-val_batch_size = 8
+val_batch_size = 1
 
 trainer = pl.Trainer(max_epochs=n_epochs)
 trainer.fit(model=model,

@@ -8,6 +8,7 @@ import torchvision.transforms as transforms
 from itertools import product
 from torch.utils.data import default_collate
 import numpy as np
+from itertools import product
 
 transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
 
@@ -245,7 +246,7 @@ class MultiAdditionTask(Dataset):
         Dataset (class): MNIST dataset
     """
 
-    def __init__(self, n_addition=2, train=True, n_classes=10, nr_examples=None):
+    def __init__(self, n_addition=2, train=True, n_classes=10, n_multi=4, nr_examples=None):
         self.train = train
 
         self.original_images = []
@@ -262,7 +263,7 @@ class MultiAdditionTask(Dataset):
 
         self.n_classes = n_classes
         self.n_addition = n_addition
-        self.n_multi = 4
+        self.n_multi = n_multi * 2
 
         # Construct the logic program for the addition task
         self.program = self.construct_logic_program()
@@ -282,62 +283,88 @@ class MultiAdditionTask(Dataset):
         Returns:
             str: The constructed logic program as a string.
         """
-        # Define the addition clause: of the form: addition(X,Y,Z) :- digit(X, N1), digit(Y, N2), add(N1, N2, Sum)
-        addition_clause = "addition(X1,X2,X3,X4,Sum) :- digit(X1,N1), digit(X2,N2), digit(X3,N3), digit(X4,N4), add(N1,N2,N3,N4,Sum).\n"
+        half_n_multi = self.n_multi // 2  # Number of digits in each group
 
-        # Single combination logic for forming multi-digit numbers
-        # combination_clause = "combination(X1,X2,Combined) :- digit(X1,N1), digit(X2,N2), combine(N1,N2,Combined).\n"
+        # Dynamic creation of the addition clause using n_multi
+        digits_x = [f"X{x+1}" for x in range(self.n_multi)]
+        digits_n = [f"N{x+1}" for x in range(self.n_multi)]
+        clause_parts = ", ".join(digits_x) + ", Sum"
+        digit_conditions = ", ".join([f"digit({digits_x[i]}, {digits_n[i]})" for i in range(self.n_multi)])
 
-        # Set to hold unique addition facts
+        # Define how to pass digits directly to the add predicate
+        first_half_args = ", ".join(digits_n[:half_n_multi])
+        second_half_args = ", ".join(digits_n[half_n_multi:])
+        add_statement = f"add({first_half_args}, {second_half_args}, Sum)"
+
+        # Construct the addition clause
+        addition_clause = f"addition({clause_parts}) :- {digit_conditions}, {add_statement}.\n"
+
+        # Generate all possible addition facts
         addition_facts_set = set()
-
-        # Generate add facts for all possible sums including combined digits directly
-        for n1 in range(self.n_classes):
-            for n2 in range(self.n_classes):
-                for n3 in range(self.n_classes):
-                    for n4 in range(self.n_classes):
-                        sum_value = n1 * 10 + n2 + n3 * 10 + n4
-                        # Store unique addition facts in the set
-                        addition_facts_set.add(f"add({n1}, {n2}, {n3}, {n4}, {sum_value}).")
-
+        for values in product(range(self.n_classes), repeat=self.n_multi):
+            # Convert each half into a concatenated number
+            first_half_value = int("".join(map(str, values[:half_n_multi])))
+            second_half_value = int("".join(map(str, values[half_n_multi:])))
+            sum_value = first_half_value + second_half_value
+            values_args = ", ".join(map(str, values[:half_n_multi])) + ", " + ", ".join(map(str, values[half_n_multi:]))
+            addition_facts_set.add(f"add({values_args}, {sum_value}).")
 
         # Convert the set back to a list for sorting or further manipulation
-        addition_facts = list(addition_facts_set)
-
-        # Defining combination facts for all pairs of single digits
-        #combination_facts = []
-        #for n1 in range(self.n_classes):
-            #for n2 in range(self.n_classes):
-                #combined = n1 * 10 + n2  # Forming a two-digit number
-                #combination_facts.append(f"combine({n1}, {n2}, {combined}).")
+        addition_facts = list(sorted(addition_facts_set))
 
         # Construction of the neural predicates (weighted facts) of the form: nn(digit, tensor(images, 0), 0) :: digit(tensor(images, 0),0)
         neural_predicates = "\n".join(f"nn(digit, tensor(images, {x}), {y}) :: digit(tensor(images, {x}),{y})." for x, y in product(range(self.n_multi), range(self.n_classes)))
 
         program_string = addition_clause  + "\n".join(addition_facts) + "\n" + neural_predicates
-        #print(program_string)
+        print(program_string)
         return parse_program(program_string)
 
-    def generate_valid_sums(self, n_classes):
-        # Generate all two-digit combinations based on `combine` facts
-        two_digit_combinations = [i * 10 + j for i in range(n_classes) for j in range(n_classes)]
-        
-        # Include single-digit numbers as well
-        all_combinations = list(range(n_classes)) + two_digit_combinations
-        
+    def generate_valid_sums(self):
+        """
+        Generates a list of all possible sums from combinations of up to n_digits.
+
+        Args:
+            n_classes (int): The number of digit classes (usually 10 for decimal digits).
+            n_digits (int): The maximum number of digits to concatenate for sum calculations.
+
+        Returns:
+            List[int]: A list of all unique valid sums.
+        """
+
+        half_n_multi = self.n_multi // 2  # Number of digits in each group
+
+        # Generate all combinations of numbers for the given number of digits
+
+        # Calculate all possible numbers that can be formed by concatenating up to n_digits
+        combinations = []
+        for digits_count in range(1, half_n_multi + 1):
+            for digits_tuple in product(range(self.n_classes), repeat=digits_count):
+                number = int(''.join(map(str, digits_tuple)))
+                combinations.append(number)
+
         # Calculate all possible sums from the combinations
-        valid_sums = set(i + j for i in all_combinations for j in all_combinations)
-        
-        return list(valid_sums)
+        valid_sums = set()
+        for num1 in combinations:
+            for num2 in combinations:
+                valid_sums.add(num1 + num2)
+
+        print("Valid sums: \n\n", valid_sums)
+
+        return sorted(list(valid_sums))
+
 
     def __getitem__(self, index):
         images = self.original_images[index * self.n_multi: (index + 1) * self.n_multi]
         targets = self.original_targets[index * self.n_multi: (index + 1) * self.n_multi]
 
-        combined_1 = targets[0]* 10 + targets[1]
-        combined_2 = targets[2] * 10 + targets[3]
+        # Calculate the number of digits to be combined
+        half_n_multi = self.n_multi // 2
+
+        # Convert groups of digits into integers
+        combined_1 = sum([targets[i].item() * (10 ** (half_n_multi - i - 1)) for i in range(half_n_multi)])
+        combined_2 = sum([targets[i + half_n_multi].item() * (10 ** (half_n_multi - (i % half_n_multi) - 1)) for i in range(half_n_multi)])
         target = int(combined_1 + combined_2)
-        #print(target)
+        #print("Target: \n\n", target)
 
         # Construction of the queries
         # Queries are of the form: addition(tensor(images, 0), tensor(images, 1), Sum)
@@ -358,13 +385,13 @@ class MultiAdditionTask(Dataset):
             # Group of queries (one query for each potential sum) for each group of images
 
             # Dynamically generate valid sums based on the combination logic
-            valid_sums = self.generate_valid_sums(self.n_classes)
+            valid_sums = self.generate_valid_sums()
 
             queries = [parse_program("addition({}, {}).".format(
             ', '.join("tensor(images, {})".format(i) for i in range(self.n_multi)), z))[0].term
             for z in valid_sums]
 
-            #print(queries)
+            print("Queries: \n\n", queries)
 
             return tensor_sources, queries, target, valid_sums
 
