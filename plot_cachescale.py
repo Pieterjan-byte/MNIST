@@ -19,20 +19,23 @@ def plot_logicscale_step():
 
 def plot_logicscale_total():
     # Your list of values
-    y_values = [0, 0.2376, 3.8531, 10.7715, 22.5603, 51.0763, 137.3049, 203.6008, 369.4450, 572.9217, 858.1767]
-    yy_values = [0, 0.2280, 0.7970, 1.7876, 3.8851, 8.8657, 13.4268, 24.7621, 38.7279, 47.5183, 62.9381]
+    x_data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    y_data = [0, 44.5829, 78.4911, 144.6647, 248.8494, 401.0412, 625.6398, 906.5131, 1283.7103, 1865.9296]
+    yy_data = [0, 28.6888, 48.7352, 78.9612, 121.7147, 161.0464, 225.8019, 312.2290, 414.1815, 539.4101]
+    yyy_data = [0, 24.5941, 40.6174, 69.6882, 112.9669, 162.3049, 217.3319, 299.0830, 380.0930, 480.8399] 
 
     # Generate x values starting from zero with the same length as y_values
-    x_values = list(range(len(y_values)))
+    # x_values = list(range(len(y_values)))
 
     # Plotting the data
-    plt.plot(x_values, y_values, linestyle='-', label="No cache", color="blue")
-    plt.plot(x_values, yy_values, linestyle='-', label="Cache", color="red")
+    plt.plot(x_data, y_data, linestyle='-', label="No cache", color="blue")
+    plt.plot(x_data, yy_data, linestyle='-', label="First Cache", color="red")
+    plt.plot(x_data, yyy_data, linestyle='-', label="Second Cache", color="green")
 
     # Adding labels and title
     plt.xlabel('Number of classes')
     plt.ylabel('Time (s)')
-    plt.title('Utilization of cache in logic engine')
+    # plt.title('Utilization of cache in logic engine')
 
     #plt.xticks(range(len(y_values)))
 
@@ -42,5 +45,5 @@ def plot_logicscale_total():
     # Display the plot
     plt.show()
 
-plot_logicscale_step()
-# plot_logicscale_total()
+# plot_logicscale_step()
+plot_logicscale_total()

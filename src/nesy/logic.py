@@ -4,7 +4,7 @@ import time
 import logging
 
 # Set up logging
-logging.basicConfig(filename='check_check.log', level=logging.INFO)
+# logging.basicConfig(filename='check_check.log', level=logging.INFO)
 
 class LogicEngine(ABC):
 
@@ -122,17 +122,11 @@ class ForwardChaining(LogicEngine):
                 complete_substitutions = generate_substitutions(clause.body, known_facts)
                 self.substitutions["validation"] = complete_substitutions
 
-        #complete_substitutions = generate_substitutions(clause.body, known_facts)
-
-    #print("Complete substitutions: \n", complete_substitutions,"\n\n")
-
         # Apply complete substitutions to infer new facts and update And-Or trees
         for substitution in complete_substitutions:
 
             # Apply the substitution to the clause's head
             substituted_head = substitute(clause.head, substitution)
-
-        #print("Substituted head: \n", substituted_head,"\n\n")
 
             # If the inferred fact is not already known, add it to the known facts + mark that new facts were inferred
             if substituted_head not in known_facts:
