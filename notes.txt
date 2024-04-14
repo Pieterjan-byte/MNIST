@@ -36,7 +36,7 @@ Mainly looking at the amount of operations that are repeated. The forward chaini
 memory. This calls for the use of some sort of caching to speed up the logic engine and avoid duplicate work.
 
 
-
+Results:
 [addition(tensor(images,0),tensor(images,1),tensor(images,2),tensor(images,3),0),
 addition(tensor(images,0),tensor(images,1),tensor(images,2),tensor(images,3),1),
 addition(tensor(images,0),tensor(images,1),tensor(images,2),tensor(images,3),2),
