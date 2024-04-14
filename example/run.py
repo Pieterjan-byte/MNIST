@@ -22,8 +22,8 @@ n_multi = 2
 
 start_time = time.time()
 
-task_train = AdditionTask(n=n_addition, n_classes=n_classes)
-task_test = AdditionTask(n=n_addition, n_classes=n_classes, train=False)
+# task_train = AdditionTask(n_addition=n_addition, n_classes=n_classes)
+# task_test = AdditionTask(n_addition=n_addition, n_classes=n_classes, train=False)
 
 # To add noise to input data or labels use this addition task
 #task_train = NoisyAdditionTask(n=n_addition, n_classes=n_classes, apply_noise_to_data=True, apply_noise_to_labels=True, noise_level=0.1)
@@ -31,8 +31,8 @@ task_test = AdditionTask(n=n_addition, n_classes=n_classes, train=False)
 # Define your parameters such as max_digits
 max_digits = 2  # Example for 2-digit addition
 
-# task_train = MultiAdditionTask(n=n_addition, n_classes=n_classes)
-# task_test = MultiAdditionTask(n=n_addition, n_classes=n_classes, train=False)
+task_train = MultiAdditionTask(n_addition=n_addition, n_classes=n_classes)
+task_test = MultiAdditionTask(n_addition=n_addition, n_classes=n_classes, train=False)
 
 neural_predicates = torch.nn.ModuleDict({"digit": MNISTEncoder(task_train.n_classes)})
 
@@ -40,16 +40,16 @@ model = NeSyModel(program=task_train.program,
                 logic_engine=ForwardChaining(),
                 neural_predicates=neural_predicates,
                 label_semantics=SumProductSemiring(),
-                n_digits = task_train.num_digits)
+                n_addition = task_train.n_addition)
 
 # Define the number of epochs we use to train the neural network
 n_epochs = 1
 
 # Define the batch size for training
-train_batch_size = 2
+train_batch_size = 1
 
 # Define the batch size for validation
-val_batch_size = 8
+val_batch_size = 1
 
 trainer = pl.Trainer(max_epochs=n_epochs)
 trainer.fit(model=model,

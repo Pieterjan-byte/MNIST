@@ -39,6 +39,10 @@ def custom_collate(batch):
     batch = tuple(zip(*batch))
     return default_collate(batch[0]), batch[1], default_collate(batch[2])
 
+def multi_digit_collate(batch):
+    batch = tuple(zip(*batch))
+    return default_collate(batch[0]), batch[1], default_collate(batch[2]), batch[3]
+
 
 class AdditionTask(Dataset):
     """
@@ -48,7 +52,7 @@ class AdditionTask(Dataset):
         Dataset (class): MNIST dataset
     """
 
-    def __init__(self, n=2, train=True, n_classes=10, nr_examples=None):
+    def __init__(self, n_addition=2, train=True, n_classes=10, nr_examples=None):
         self.train = train
 
         self.original_images = []
@@ -64,7 +68,7 @@ class AdditionTask(Dataset):
         self.original_targets = torch.tensor(self.original_targets)
 
         self.n_classes = n_classes
-        self.num_digits = n
+        self.n_addition = n_addition
 
         # Construct the logic program for the addition task
         self.program = self.construct_logic_program()
@@ -75,7 +79,7 @@ class AdditionTask(Dataset):
             else:
                 self.nr_examples = nr_examples
         else:
-            self.nr_examples = len(self.original_images) // self.num_digits
+            self.nr_examples = len(self.original_images) // self.n_addition
 
     def construct_logic_program(self):
         """
@@ -85,21 +89,21 @@ class AdditionTask(Dataset):
             str: The constructed logic program as a string.
         """
         # Define the addition clause: of the form: addition(X,Y,Z) :- digit(X, N1), digit(Y, N2), add(N1, N2, Sum)
-        addition_clause = "addition(" + ",".join(f"X{x}" for x in range(1, self.num_digits + 1)) + ",Sum) :- " + ", ".join(f"digit(X{x},N{x})" for x in range(1, self.num_digits + 1)) + ", add(" + ",".join(f"N{x}" for x in range(1, self.num_digits + 1)) + ",Sum).\n"
+        addition_clause = "addition(" + ",".join(f"X{x}" for x in range(1, self.n_addition + 1)) + ",Sum) :- " + ", ".join(f"digit(X{x},N{x})" for x in range(1, self.n_addition + 1)) + ", add(" + ",".join(f"N{x}" for x in range(1, self.n_addition + 1)) + ",Sum).\n"
 
         # Define the facts of the form: add(N1, N2, Sum)
-        addition_facts = "\n".join(f"add({', '.join(map(str, p))}, {sum(p)})." for p in product(range(self.n_classes), repeat=self.num_digits))
+        addition_facts = "\n".join(f"add({', '.join(map(str, p))}, {sum(p)})." for p in product(range(self.n_classes), repeat=self.n_addition))
 
         # Construction of the neural predicates (weighted facts) of the form: nn(digit, tensor(images, 0), 0) :: digit(tensor(images, 0),0)
-        neural_predicates = "\n".join(f"nn(digit, tensor(images, {x}), {y}) :: digit(tensor(images, {x}),{y})." for x, y in product(range(self.num_digits), range(self.n_classes)))
+        neural_predicates = "\n".join(f"nn(digit, tensor(images, {x}), {y}) :: digit(tensor(images, {x}),{y})." for x, y in product(range(self.n_addition), range(self.n_classes)))
 
         program_string = addition_clause + addition_facts + "\n" + neural_predicates
         #print(program_string)
         return parse_program(program_string)
 
     def __getitem__(self, index):
-        images = self.original_images[index * self.num_digits: (index + 1) * self.num_digits]
-        targets = self.original_targets[index * self.num_digits: (index + 1) * self.num_digits]
+        images = self.original_images[index * self.n_addition: (index + 1) * self.n_addition]
+        targets = self.original_targets[index * self.n_addition: (index + 1) * self.n_addition]
         target = int(targets.sum())
 
         # Construction of the queries
@@ -110,7 +114,7 @@ class AdditionTask(Dataset):
             # One query with the target sum for each group of images
 
             query_template = "addition({}, {})."
-            tensor_indices = ', '.join("tensor(images, {})".format(i) for i in range(self.num_digits))
+            tensor_indices = ', '.join("tensor(images, {})".format(i) for i in range(self.n_addition))
             query = parse_program(query_template.format(tensor_indices, target))[0].term
 
             tensor_sources = {"images": images}
@@ -121,8 +125,8 @@ class AdditionTask(Dataset):
             # Group of queries (one query for each potential sum) for each group of images
 
             queries = [parse_program("addition({}, {}).".format(
-            ', '.join("tensor(images, {})".format(i) for i in range(self.num_digits)), z))[0].term
-            for z in range(self.n_classes * self.num_digits - (self.num_digits - 1))]
+            ', '.join("tensor(images, {})".format(i) for i in range(self.n_addition)), z))[0].term
+            for z in range(self.n_classes * self.n_addition - (self.n_addition - 1))]
 
             tensor_sources = {"images": images}
 
@@ -241,7 +245,7 @@ class MultiAdditionTask(Dataset):
         Dataset (class): MNIST dataset
     """
 
-    def __init__(self, n=2, train=True, n_classes=10, nr_examples=None):
+    def __init__(self, n_addition=2, train=True, n_classes=10, nr_examples=None):
         self.train = train
 
         self.original_images = []
@@ -257,7 +261,7 @@ class MultiAdditionTask(Dataset):
         self.original_targets = torch.tensor(self.original_targets)
 
         self.n_classes = n_classes
-        self.num_digits = n
+        self.n_addition = n_addition
         self.n_multi = 4
 
         # Construct the logic program for the addition task
@@ -326,7 +330,7 @@ class MultiAdditionTask(Dataset):
 
         #print("Valid sums are: \n\n: ", valid_sums, "\n\n")
         
-        return valid_sums
+        return list(valid_sums)
 
     def __getitem__(self, index):
         images = self.original_images[index * self.n_multi: (index + 1) * self.n_multi]
@@ -350,7 +354,7 @@ class MultiAdditionTask(Dataset):
             tensor_indices = ', '.join("tensor(images, {})".format(i) for i in range(self.n_multi))
             query = parse_program(query_template.format(tensor_indices, target))[0].term
 
-            return tensor_sources, query, torch.tensor([1.0])
+            return tensor_sources, query, torch.tensor([1.0]), 0
         else:
             # Validation phase
             # Group of queries (one query for each potential sum) for each group of images
@@ -364,14 +368,14 @@ class MultiAdditionTask(Dataset):
 
             #print(queries)
 
-            return tensor_sources, queries, target
+            return tensor_sources, queries, target, valid_sums
 
 
     def dataloader(self, batch_size=2, shuffle=None, num_workers=0):
         if shuffle is None:
             shuffle = self.train
 
-        return DataLoader(self, batch_size=batch_size, shuffle=shuffle, collate_fn=custom_collate,
+        return DataLoader(self, batch_size=batch_size, shuffle=shuffle, collate_fn=multi_digit_collate,
                         num_workers=num_workers)
 
     def __len__(self):

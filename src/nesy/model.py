@@ -49,7 +49,7 @@ class NeSyModel(pl.LightningModule):
                 neural_predicates: torch.nn.ModuleDict,
                 logic_engine: LogicEngine,
                 label_semantics: Semantics,
-                n_digits: int,
+                n_addition: int,
                 learning_rate = 0.001, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.neural_predicates = neural_predicates
@@ -59,7 +59,7 @@ class NeSyModel(pl.LightningModule):
         self.learning_rate = learning_rate
         self.bce = torch.nn.BCELoss()
         self.evaluator = Evaluator(neural_predicates=neural_predicates, label_semantics=label_semantics)
-        self.n_digits = n_digits
+        self.n_addition = n_addition
 
     def forward(self, tensor_sources: Dict[str, torch.Tensor],  queries: List[Term] | List[List[Term]]):
         """
@@ -72,20 +72,11 @@ class NeSyModel(pl.LightningModule):
         Returns:
             torch.Tensor: Output tensor containing probabilities
         """
-        # Set up logging
-        logging.basicConfig(filename='output.log', level=logging.INFO)
-
         # Check if the queries are single or grouped
         if isinstance(queries[0], Term):
             single_query = True
             and_or_trees = self.logic_engine.reason(self.program, queries, single_query)
             results = self.evaluator.evaluate(tensor_sources, and_or_trees, i=0)
-            logging.info(queries)
-            logging.info("\n")
-            logging.info(and_or_trees)
-            logging.info("\n")
-            logging.info(results)
-            logging.info("\n")
         else:
             single_query = False
             results = []
@@ -111,21 +102,12 @@ class NeSyModel(pl.LightningModule):
         Returns:
             float: The computed loss for the training step.
         """
-        # Set up logging
-        logging.basicConfig(filename='output.log', level=logging.INFO)
-        tensor_sources, queries, y_true = I
+        tensor_sources, queries, y_true, dummy = I
         y_preds = self.forward(tensor_sources, queries)
         loss = self.bce(y_preds.squeeze(), y_true.float().squeeze())
         self.log("train_loss", loss, on_epoch=True, prog_bar=True)
 
-        logging.info(y_true)
-        logging.info("\n")
-        logging.info(y_preds)
-        logging.info("\n")
-        logging.info("---------------------------------------")
-
         return loss
-
 
     def validation_step(self, I, batch_idx):
         """
@@ -137,10 +119,10 @@ class NeSyModel(pl.LightningModule):
         Returns:
             float: The computed accuracy for the validation step.
         """
-        tensor_sources, queries, y_true = I
+        tensor_sources, queries, y_true, val_sum = I
+        valid_sums = val_sum[0]
         y_preds = self.forward(tensor_sources, queries)
-        #print("Y preds: \n\n ", y_preds)
-        accuracy = accuracy_score(y_true, y_preds.argmax(dim=-1))
+        accuracy = accuracy_score(y_true, torch.tensor([valid_sums[int(y_preds.argmax(dim=-1))]]))
         self.log("test_acc", accuracy, on_step=True, on_epoch=True, prog_bar=True)
         return accuracy
 

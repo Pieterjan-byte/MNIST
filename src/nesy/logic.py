@@ -86,13 +86,6 @@ class ForwardChaining(LogicEngine):
 
         # logging.info(f'The function took {elapsed_time:.4f} seconds to execute')
 
-        # logging.info(queries)
-        # logging.info("\n")
-        # logging.info(and_or_trees)
-        # logging.info("\n")
-        # logging.info("------------------------------")
-        # logging.info("\n")
-
         return and_or_trees
 
 
