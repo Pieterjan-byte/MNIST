@@ -6,18 +6,18 @@ import time
 import logging
 
 # Set up logging
-#logging.basicConfig(filename='digitsscale_5.log', level=logging.INFO)
+logging.basicConfig(filename='old_code.log', level=logging.INFO)
 
 import torch
 import pytorch_lightning as pl
 
 # Define the number of classes of possible digits(n_classes = 2 means only add images representing 0s and 1s), 1 < n_classes < 11
-n_classes = 2
+n_classes = 10
 
 # Define the number of single digits number we are summing, 1 < n_addition < 10
 n_addition = 2
 
-#start_time = time.time()
+start_time = time.time()
 
 task_train = AdditionTask(n=n_addition, n_classes=n_classes)
 # To add noise to input data or labels use this addition task
@@ -34,7 +34,7 @@ model = NeSyModel(program=task_train.program,
                 n_digits = task_train.num_digits)
 
 # Define the number of epochs we use to train the neural network
-n_epochs = 5
+n_epochs = 1
 
 # Define the batch size for training
 train_batch_size = 2
@@ -47,7 +47,7 @@ trainer.fit(model=model,
             train_dataloaders=task_train.dataloader(batch_size=train_batch_size),
             val_dataloaders=task_test.dataloader(batch_size=val_batch_size))
 
-#end_time = time.time()
-#elapsed_time = end_time - start_time
+end_time = time.time()
+elapsed_time = end_time - start_time
 
-#logging.info(f'The system took {elapsed_time:.4f} seconds to execute')
+logging.info(f'The system took {elapsed_time:.4f} seconds to execute')

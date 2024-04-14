@@ -4,7 +4,7 @@ import time
 import logging
 
 # Set up logging
-logging.basicConfig(filename='cache_scale_44.log', level=logging.INFO)
+# logging.basicConfig(filename='cache_scale_44.log', level=logging.INFO)
 
 class LogicEngine(ABC):
 
@@ -38,7 +38,7 @@ class ForwardChaining(LogicEngine):
             List[Term]: And-Or trees representing proofs for each query
 
         """
-        start_time = time.time()
+        # start_time = time.time()
         known_facts = set() # Stores the known facts that are derived from the program
 
         for item in program:
@@ -59,10 +59,10 @@ class ForwardChaining(LogicEngine):
                     if new_facts_added:
                         inferred = True
 
-        end_time = time.time()
-        elapsed_time = end_time - start_time
+        # end_time = time.time()
+        # elapsed_time = end_time - start_time
 
-        logging.info(f'The function took {elapsed_time:.4f} seconds to execute')
+        # logging.info(f'The function took {elapsed_time:.4f} seconds to execute')
         
         return and_or_trees
 
@@ -100,7 +100,7 @@ class ForwardChaining(LogicEngine):
                 complete_substitutions = generate_substitutions(clause.body, known_facts)
                 self.substitutions["validation"] = complete_substitutions
 
-        #complete_substitutions = generate_substitutions(clause.body, known_facts)
+        # complete_substitutions = generate_substitutions(clause.body, known_facts)
 
         # Apply complete substitutions to infer new facts and update And-Or trees
         for substitution in complete_substitutions:
