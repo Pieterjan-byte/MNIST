@@ -327,8 +327,6 @@ class MultiAdditionTask(Dataset):
         
         # Calculate all possible sums from the combinations
         valid_sums = set(i + j for i in all_combinations for j in all_combinations)
-
-        #print("Valid sums are: \n\n: ", valid_sums, "\n\n")
         
         return list(valid_sums)
 

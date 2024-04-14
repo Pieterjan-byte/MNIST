@@ -46,10 +46,10 @@ model = NeSyModel(program=task_train.program,
 n_epochs = 1
 
 # Define the batch size for training
-train_batch_size = 1
+train_batch_size = 2
 
 # Define the batch size for validation
-val_batch_size = 1
+val_batch_size = 8
 
 trainer = pl.Trainer(max_epochs=n_epochs)
 trainer.fit(model=model,

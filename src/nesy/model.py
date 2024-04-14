@@ -114,15 +114,23 @@ class NeSyModel(pl.LightningModule):
         Performs a single validation step
 
         Args:
-            I (tuple): Contains tensor sources, queries, and true labels for the batch.
+            I (tuple): Contains tensor sources, queries, true labels for the batch and the possible target sums.
 
         Returns:
             float: The computed accuracy for the validation step.
         """
         tensor_sources, queries, y_true, val_sum = I
         valid_sums = val_sum[0]
+
         y_preds = self.forward(tensor_sources, queries)
-        accuracy = accuracy_score(y_true, torch.tensor([valid_sums[int(y_preds.argmax(dim=-1))]]))
+
+        tensor_size = y_preds.size(dim=0)
+
+        pred_results = []
+        for i in range(0,tensor_size):
+            pred_results.append(valid_sums[int(y_preds[i].argmax(dim=-1))])
+
+        accuracy = accuracy_score(y_true, torch.tensor(pred_results))
         self.log("test_acc", accuracy, on_step=True, on_epoch=True, prog_bar=True)
         return accuracy
 
