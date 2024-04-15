@@ -29,8 +29,8 @@ start_time = time.time()
 #task_test = AdditionTask(n_addition=n_addition, n_classes=n_classes, train=False)
 
 
-#task_train = MultiAdditionTask(n_addition=n_addition, n_classes=n_classes, n_multi = n_multi)
-#task_test = MultiAdditionTask(n_addition=n_addition, n_classes=n_classes,  n_multi = n_multi, train=False)
+task_train = MultiAdditionTask(n_addition=n_addition, n_classes=n_classes, n_multi = n_multi)
+task_test = MultiAdditionTask(n_addition=n_addition, n_classes=n_classes,  n_multi = n_multi, train=False)
 
 neural_predicates = torch.nn.ModuleDict({"digit": MNISTEncoder(task_train.n_classes)})
 
