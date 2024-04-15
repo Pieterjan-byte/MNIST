@@ -81,6 +81,10 @@ class ForwardChaining(LogicEngine):
                 if query_check[i] == False:
                     self.trees[query] = and_or_trees[i]
 
+        else:
+            # dumping of the cache since the system starts with validation step and all queries are handled normally
+            self.substitutions = []
+
         # end_time = time.time()
         # elapsed_time = end_time - start_time
 
