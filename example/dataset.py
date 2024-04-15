@@ -12,7 +12,7 @@ from itertools import product
 
 transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
 
-def add_noise_to_images(images, noise_level=0.2):
+def add_noise_to_images(images, noise_level=0.1):
     """
     Adds noise to the images
     """
@@ -348,7 +348,7 @@ class MultiAdditionTask(Dataset):
             for num2 in combinations:
                 valid_sums.add(num1 + num2)
 
-        print("Valid sums: \n\n", valid_sums)
+        #print("Valid sums: \n\n", valid_sums)
 
         return sorted(list(valid_sums))
 
@@ -391,7 +391,7 @@ class MultiAdditionTask(Dataset):
             ', '.join("tensor(images, {})".format(i) for i in range(self.n_multi)), z))[0].term
             for z in valid_sums]
 
-            print("Queries: \n\n", queries)
+            #print("Queries: \n\n", queries)
 
             return tensor_sources, queries, target, valid_sums
 

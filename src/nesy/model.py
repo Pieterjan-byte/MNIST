@@ -19,13 +19,7 @@ class MNISTEncoder(nn.Module):
         self.n = n
         super(MNISTEncoder, self).__init__()
         self.net = nn.Sequential(
-            nn.Linear(784, 512),
-            nn.ReLU(),
-            nn.Linear(512, 256),
-            nn.ReLU(),
-            nn.Linear(256, 128),
-            nn.ReLU(),
-            nn.Linear(128, 30),
+            nn.Linear(784, 30),
             nn.ReLU(),
             nn.Linear(30, n),
             nn.Softmax(-1))
@@ -102,11 +96,10 @@ class NeSyModel(pl.LightningModule):
         Returns:
             float: The computed loss for the training step.
         """
-        tensor_sources, queries, y_true, dummy = I
+        tensor_sources, queries, y_true = I
         y_preds = self.forward(tensor_sources, queries)
         loss = self.bce(y_preds.squeeze(), y_true.float().squeeze())
         self.log("train_loss", loss, on_epoch=True, prog_bar=True)
-
         return loss
 
     def validation_step(self, I, batch_idx):
@@ -119,18 +112,9 @@ class NeSyModel(pl.LightningModule):
         Returns:
             float: The computed accuracy for the validation step.
         """
-        tensor_sources, queries, y_true, val_sum = I
-        valid_sums = val_sum[0]
-
+        tensor_sources, queries, y_true = I
         y_preds = self.forward(tensor_sources, queries)
-
-        tensor_size = y_preds.size(dim=0)
-
-        pred_results = []
-        for i in range(0,tensor_size):
-            pred_results.append(valid_sums[int(y_preds[i].argmax(dim=-1))])
-
-        accuracy = accuracy_score(y_true, torch.tensor(pred_results))
+        accuracy = accuracy_score(y_true, y_preds.argmax(dim=-1))
         self.log("test_acc", accuracy, on_step=True, on_epoch=True, prog_bar=True)
         return accuracy
 
