@@ -19,14 +19,14 @@ class MNISTEncoder(nn.Module):
         self.n = n
         super(MNISTEncoder, self).__init__()
         self.net = nn.Sequential(
-            nn.Linear(784, 30),
+            nn.Linear(784, 512),
             nn.ReLU(),
-            # nn.Linear(512, 256),
-            # nn.ReLU(),
-            # nn.Linear(256, 128),
-            # nn.ReLU(),
-            # nn.Linear(128, 30),
-            # nn.ReLU(),
+            nn.Linear(512, 256),
+            nn.ReLU(),
+            nn.Linear(256, 128),
+            nn.ReLU(),
+            nn.Linear(128, 30),
+            nn.ReLU(),
             nn.Linear(30, n),
             nn.Softmax(-1))
 

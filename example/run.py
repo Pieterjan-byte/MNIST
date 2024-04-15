@@ -6,7 +6,7 @@ import time
 import logging
 
 # Set up logging
-logging.basicConfig(filename='old_code.log', level=logging.INFO)
+logging.basicConfig(filename='test.log', level=logging.INFO)
 
 import torch
 import pytorch_lightning as pl
@@ -15,10 +15,10 @@ import pytorch_lightning as pl
 # 0: Normal Addition
 # 1: Noisy Addition
 # 2: Multi Addition
-task = 0
+task = 2
 
 # Define the number of classes of possible digits(n_classes = 2 means only add images representing 0s and 1s), 1 < n_classes < 11
-n_classes = 9
+n_classes = 4
 
 # Define the number of single digits number we are summing, 1 < n_addition < 10
 n_addition = 2
@@ -26,8 +26,17 @@ n_addition = 2
 # Define the number of combined digits used for creating new numbers
 n_multi = 2
 
-start_time = time.time()
+# Define the number of epochs we use to train the neural network
+n_epochs = 1
 
+# Define the batch size for training
+train_batch_size = 2
+
+# Define the batch size for validation
+val_batch_size = 8
+
+
+start_time = time.time()
 
 if task == 0:
     task_train = AdditionTask(n_addition=n_addition, n_classes=n_classes)
@@ -67,15 +76,6 @@ elif task == 2:
                     neural_predicates=neural_predicates,
                     label_semantics=SumProductSemiring(),
                     n_addition = task_train.n_addition)
-
-# Define the number of epochs we use to train the neural network
-n_epochs = 1
-
-# Define the batch size for training
-train_batch_size = 2
-
-# Define the batch size for validation
-val_batch_size = 64
 
 trainer = pl.Trainer(max_epochs=n_epochs)
 trainer.fit(model=model,
